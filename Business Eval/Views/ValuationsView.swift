@@ -14,6 +14,7 @@ struct ValuationsView: View {
     @State private var selectedMethodology: ValuationMethodology? = nil
     @State private var selectedConfidence: ConfidenceLevel? = nil
     @State private var sortOption: SortOption = .dateDescending
+    @State private var showingAnalytics = false
     
     enum SortOption: String, CaseIterable {
         case dateDescending = "Date (Newest)"
@@ -152,6 +153,16 @@ struct ValuationsView: View {
                 }
             }
         .navigationTitle("Valuations")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showingAnalytics = true }) {
+                    Image(systemName: "chart.bar.fill")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAnalytics) {
+            ValuationAnalyticsView()
+        }
         }
     }
     
