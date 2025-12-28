@@ -125,7 +125,7 @@ class ROICalculator {
             revenueGrowthRate: revenueGrowthRate,
             profitMargin: profitMargin * 0.8,
             exitMultiple: exitMultiple,
-            additionalInvestment: additionalInvestment.
+            additionalInvestment: additionalInvestment,
             workingCapital: workingCapital
         )
         
