@@ -26,13 +26,8 @@ final class Business {
     var updatedAt: Date
     
     // Relationships
-    @Relationship(deleteRule: .cascade, inverse: \Correspondence.business)
     var correspondence: [Correspondence] = []
-    
-    @Relationship(deleteRule: .cascade, inverse: \Valuation.business)
     var valuations: [Valuation] = []
-    
-    @Relationship(deleteRule: .nullify, inverse: \Owner.businesses)
     var owner: Owner?
     
     init(name: String, industry: String, location: String, askingPrice: Double, 

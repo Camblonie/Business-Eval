@@ -21,7 +21,6 @@ final class Owner {
     var updatedAt: Date
     
     // Relationships
-    @Relationship(deleteRule: .nullify, inverse: \Business.owner)
     var businesses: [Business] = []
     
     init(name: String, email: String? = nil, phone: String? = nil, 
