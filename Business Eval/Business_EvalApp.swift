@@ -12,7 +12,10 @@ import SwiftData
 struct Business_EvalApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Business.self,
+            Owner.self,
+            Correspondence.self,
+            Valuation.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
