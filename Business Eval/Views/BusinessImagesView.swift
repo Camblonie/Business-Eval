@@ -122,7 +122,7 @@ struct BusinessImageCell: View {
                     .foregroundColor(.secondary)
             }
             
-            Text(image.createdAt, style: .short)
+            Text(image.createdAt, style: .abbreviated)
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
