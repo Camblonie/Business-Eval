@@ -14,6 +14,7 @@ struct BusinessDetailView: View {
     @State private var showingAddCorrespondence = false
     @State private var showingAddValuation = false
     @State private var showingOwnerDetail = false
+    @State private var showingAddImages = false
     
     var body: some View {
         ScrollView {
@@ -26,6 +27,9 @@ struct BusinessDetailView: View {
                 
                 // Business Details
                 businessDetailsSection
+                
+                // Business Images
+                imagesSection
                 
                 // Owner Information
                 ownerSection
@@ -49,6 +53,9 @@ struct BusinessDetailView: View {
                     Button(action: { showingAddValuation = true }) {
                         Label("Add Valuation", systemImage: "chart.line.uptrend.xyaxis")
                     }
+                    Button(action: { showingAddImages = true }) {
+                        Label("Add Images", systemImage: "photo")
+                    }
                 } label: {
                     Image(systemName: "plus.circle.fill")
                 }
@@ -59,6 +66,9 @@ struct BusinessDetailView: View {
         }
         .sheet(isPresented: $showingAddValuation) {
             AddValuationView(business: business)
+        }
+        .sheet(isPresented: $showingAddImages) {
+            AddBusinessImageView(business: business)
         }
         .sheet(isPresented: $showingOwnerDetail) {
             if let owner = business.owner {
@@ -148,6 +158,10 @@ struct BusinessDetailView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+    }
+    
+    private var imagesSection: some View {
+        BusinessImagesView(business: business)
     }
     
     private var ownerSection: some View {

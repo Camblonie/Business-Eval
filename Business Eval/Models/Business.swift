@@ -29,6 +29,7 @@ final class Business {
     var correspondence: [Correspondence] = []
     var valuations: [Valuation] = []
     var owner: Owner?
+    var images: [BusinessImage] = []
     
     init(name: String, industry: String, location: String, askingPrice: Double, 
          annualRevenue: Double, annualProfit: Double, numberOfEmployees: Int, 
