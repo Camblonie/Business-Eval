@@ -15,6 +15,8 @@ struct BusinessDetailView: View {
     @State private var showingAddValuation = false
     @State private var showingOwnerDetail = false
     @State private var showingAddImages = false
+    @State private var showingValuationCalculator = false
+    @State private var showingValuationComparison = false
     
     var body: some View {
         ScrollView {
@@ -53,6 +55,14 @@ struct BusinessDetailView: View {
                     Button(action: { showingAddValuation = true }) {
                         Label("Add Valuation", systemImage: "chart.line.uptrend.xyaxis")
                     }
+                    Button(action: { showingValuationCalculator = true }) {
+                        Label("Valuation Calculator", systemImage: "calculator")
+                    }
+                    if business.valuations.count >= 2 {
+                        Button(action: { showingValuationComparison = true }) {
+                            Label("Compare Valuations", systemImage: "chart.bar.doc.horizontal")
+                        }
+                    }
                     Button(action: { showingAddImages = true }) {
                         Label("Add Images", systemImage: "photo")
                     }
@@ -66,6 +76,12 @@ struct BusinessDetailView: View {
         }
         .sheet(isPresented: $showingAddValuation) {
             AddValuationView(business: business)
+        }
+        .sheet(isPresented: $showingValuationCalculator) {
+            ValuationCalculatorView(business: business)
+        }
+        .sheet(isPresented: $showingValuationComparison) {
+            ValuationComparisonView(business: business)
         }
         .sheet(isPresented: $showingAddImages) {
             AddBusinessImageView(business: business)
