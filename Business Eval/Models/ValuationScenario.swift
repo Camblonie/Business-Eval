@@ -38,11 +38,13 @@ final class ValuationScenario {
         self.growthRate = growthRate
         self.riskAdjustment = riskAdjustment
         self.marketConditions = marketConditions
-        self.calculatedValue = calculateScenarioValue()
-        self.confidenceLevel = determineConfidenceLevel()
         self.assumptions = assumptions
         self.notes = notes
         self.createdAt = Date()
+        
+        // Calculate derived values after all properties are initialized
+        self.calculatedValue = calculateScenarioValue()
+        self.confidenceLevel = determineConfidenceLevel()
     }
     
     private func calculateScenarioValue() -> Double {
