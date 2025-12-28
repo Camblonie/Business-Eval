@@ -42,20 +42,15 @@ final class ValuationScenario {
         self.notes = notes
         self.createdAt = Date()
         
-        // Calculate derived values after all properties are initialized
-        self.calculatedValue = calculateScenarioValue()
-        self.confidenceLevel = determineConfidenceLevel()
-    }
-    
-    private func calculateScenarioValue() -> Double {
+        // Calculate scenario value inline
         var value = baseValuation
         
         // Apply revenue adjustment
-        let revenueMultiplier = adjustedRevenue / (business?.annualRevenue ?? 1)
+        let revenueMultiplier = adjustedRevenue / (business.annualRevenue > 0 ? business.annualRevenue : 1)
         value *= revenueMultiplier
         
         // Apply profit adjustment
-        let profitMultiplier = adjustedProfit / (business?.annualProfit ?? 1)
+        let profitMultiplier = adjustedProfit / (business.annualProfit > 0 ? business.annualProfit : 1)
         value *= profitMultiplier
         
         // Apply growth rate adjustment
@@ -67,22 +62,20 @@ final class ValuationScenario {
         // Apply market conditions
         value *= marketConditions.multiplier
         
-        return value
-    }
-    
-    private func determineConfidenceLevel() -> ConfidenceLevel {
+        self.calculatedValue = value
+        
+        // Determine confidence level inline
         switch scenarioType {
         case .optimistic:
-            return .medium
+            self.confidenceLevel = .medium
         case .realistic:
-            return .high
+            self.confidenceLevel = .high
         case .pessimistic:
-            return .medium
+            self.confidenceLevel = .medium
         case .custom:
-            return .low
+            self.confidenceLevel = .low
         }
     }
-}
 
 enum ScenarioType: String, CaseIterable, Codable {
     case optimistic = "Optimistic"
