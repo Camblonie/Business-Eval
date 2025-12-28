@@ -18,6 +18,10 @@ struct BusinessDetailView: View {
     @State private var showingValuationCalculator = false
     @State private var showingValuationComparison = false
     @State private var showingValuationExport = false
+    @State private var showingIndustryBenchmarks = false
+    @State private var showingValuationScenarios = false
+    @State private var showingROIAnalysis = false
+    @State private var showingOfferRecommendation = false
     
     var body: some View {
         ScrollView {
@@ -69,6 +73,18 @@ struct BusinessDetailView: View {
                             Label("Export Valuations", systemImage: "square.and.arrow.up")
                         }
                     }
+                    Button(action: { showingIndustryBenchmarks = true }) {
+                        Label("Industry Benchmarks", systemImage: "building.2")
+                    }
+                    Button(action: { showingValuationScenarios = true }) {
+                        Label("Valuation Scenarios", systemImage: "waveform.path.ecg")
+                    }
+                    Button(action: { showingROIAnalysis = true }) {
+                        Label("ROI Analysis", systemImage: "chart.line.uptrend.xyaxis.circle")
+                    }
+                    Button(action: { showingOfferRecommendation = true }) {
+                        Label("Offer Recommendation", systemImage: "hand.tap")
+                    }
                     Button(action: { showingAddImages = true }) {
                         Label("Add Images", systemImage: "photo")
                     }
@@ -91,6 +107,18 @@ struct BusinessDetailView: View {
         }
         .sheet(isPresented: $showingValuationExport) {
             ValuationExportView(business: business)
+        }
+        .sheet(isPresented: $showingIndustryBenchmarks) {
+            IndustryBenchmarksView(business: business)
+        }
+        .sheet(isPresented: $showingValuationScenarios) {
+            ValuationScenariosView(business: business)
+        }
+        .sheet(isPresented: $showingROIAnalysis) {
+            ROIAnalysisView(business: business)
+        }
+        .sheet(isPresented: $showingOfferRecommendation) {
+            OfferRecommendationView(business: business)
         }
         .sheet(isPresented: $showingAddImages) {
             AddBusinessImageView(business: business)
