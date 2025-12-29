@@ -82,7 +82,7 @@ struct IndustryBenchmarksView: View {
                 OverviewRow(label: "Risk Level", value: benchmark.riskLevel.rawValue, color: riskColor(benchmark.riskLevel))
                 OverviewRow(label: "Typical Growth Rate", value: "\(String(format: "%.1f", benchmark.typicalGrowthRate * 100))%")
                 OverviewRow(label: "Average Business Size", value: "$\(String(format: "%.0f", benchmark.averageBusinessSize))")
-                OverviewRow(label: "Last Updated", value: formatDate(benchmark.lastUpdated), style: .date)
+                OverviewRow(label: "Last Updated", value: formatDate(benchmark.lastUpdated))
             }
         }
         .padding()
