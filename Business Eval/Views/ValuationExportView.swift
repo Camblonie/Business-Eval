@@ -269,9 +269,9 @@ struct ValuationExportView: View {
                 let avgMultiple = selectedValuationObjects.reduce(0) { $0 + $1.multiple } / Double(selectedValuationObjects.count)
                 
                 let analysisText = """
-                Average Valuation: $\(avgValue, specifier: "%.0f")
-                Average Multiple: \(avgMultiple, specifier: "%.1f")x
-                Value Range: $\(selectedValuationObjects.map(\.calculatedValue).min() ?? 0, specifier: "%.0f") - $\(selectedValuationObjects.map(\.calculatedValue).max() ?? 0, specifier: "%.0f")
+                Average Valuation: $\(String(format: "%.0f", avgValue))
+                Average Multiple: \(String(format: "%.1f", avgMultiple))x
+                Value Range: $\(String(format: "%.0f", selectedValuationObjects.map(\.calculatedValue).min() ?? 0)) - $\(String(format: "%.0f", selectedValuationObjects.map(\.calculatedValue).max() ?? 0))
                 """
                 
                 analysisText.draw(at: CGPoint(x: 50, y: yPosition), withAttributes: [
