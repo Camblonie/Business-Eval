@@ -64,7 +64,7 @@ struct ROIAnalysisView: View {
                 InputRow(
                     title: "Purchase Price",
                     value: $purchasePrice,
-                    format: .currency(code: "USD"),
+                    formatType: .currency,
                     keyboardType: .decimalPad
                 )
                 
@@ -74,42 +74,42 @@ struct ROIAnalysisView: View {
                         get: { Double(investmentPeriod) },
                         set: { investmentPeriod = Int($0) }
                     ),
-                    format: .number,
+                    formatType: .number,
                     keyboardType: .numberPad
                 )
                 
                 InputRow(
                     title: "Revenue Growth Rate",
                     value: $revenueGrowthRate,
-                    format: .percent.precision(.fractionLength(1)),
+                    formatType: .percent,
                     keyboardType: .decimalPad
                 )
                 
                 InputRow(
                     title: "Target Profit Margin",
                     value: $profitMargin,
-                    format: .percent.precision(.fractionLength(2)),
+                    formatType: .percent,
                     keyboardType: .decimalPad
                 )
                 
                 InputRow(
                     title: "Exit Multiple",
                     value: $exitMultiple,
-                    format: .number.precision(.fractionLength(1)),
+                    formatType: .number,
                     keyboardType: .decimalPad
                 )
                 
                 InputRow(
                     title: "Additional Investment",
                     value: $additionalInvestment,
-                    format: .currency(code: "USD"),
+                    formatType: .currency,
                     keyboardType: .decimalPad
                 )
                 
                 InputRow(
                     title: "Working Capital",
                     value: $workingCapital,
-                    format: .currency(code: "USD"),
+                    formatType: .currency,
                     keyboardType: .decimalPad
                 )
                 
@@ -151,7 +151,7 @@ struct ROIAnalysisView: View {
                 
                 ResultCard(
                     title: "Net Profit",
-                    value: "$\(results.netProfit, specifier: "%.0f")",
+                    value: "$\(String(format: "%.0f", results.netProfit))",
                     subtitle: "Total profit after exit",
                     color: results.netProfit > 0 ? .green : .red
                 )
@@ -267,29 +267,29 @@ struct ROIAnalysisView: View {
                 .fontWeight(.bold)
             
             VStack(spacing: 12) {
-                MetricRow(
+                ROIMetricRow(
                     title: "Initial Investment",
-                    value: "$\(results.totalInvestment, specifier: "%.0f")"
+                    value: "$\(String(format: "%.0f", results.totalInvestment))"
                 )
                 
-                MetricRow(
+                ROIMetricRow(
                     title: "Exit Value",
-                    value: "$\(results.exitValue, specifier: "%.0f")"
+                    value: "$\(String(format: "%.0f", results.exitValue))"
                 )
                 
-                MetricRow(
+                ROIMetricRow(
                     title: "Total Cash Flow",
-                    value: "$\(results.totalCashFlow, specifier: "%.0f")"
+                    value: "$\(String(format: "%.0f", results.totalCashFlow))"
                 )
                 
-                MetricRow(
+                ROIMetricRow(
                     title: "IRR (Internal Rate of Return)",
                     value: "\(String(format: "%.1f", results.irr * 100))%"
                 )
                 
-                MetricRow(
+                ROIMetricRow(
                     title: "NPV (Net Present Value)",
-                    value: "$\(results.npv, specifier: "%.0f")"
+                    value: "$\(String(format: "%.0f", results.npv))"
                 )
             }
         }
@@ -354,7 +354,7 @@ struct ROIAnalysisView: View {
 struct InputRow: View {
     let title: String
     @Binding var value: Double
-    let format: Format
+    let formatType: FormatType
     let keyboardType: UIKeyboardType
     
     var body: some View {
@@ -364,11 +364,28 @@ struct InputRow: View {
             
             Spacer()
             
-            TextField("", value: $value, format: format)
+            TextField("", value: $value, format: formatType.formatter)
                 .keyboardType(keyboardType)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 120)
                 .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+enum FormatType {
+    case currency
+    case number
+    case percent
+    
+    var formatter: Format {
+        switch self {
+        case .currency:
+            return .currency(code: "USD")
+        case .number:
+            return .number
+        case .percent:
+            return .percent.precision(.fractionLength(1))
         }
     }
 }
@@ -457,7 +474,7 @@ struct SensitivityRow: View {
     }
 }
 
-struct MetricRow: View {
+struct ROIMetricRow: View {
     let title: String
     let value: String
     
