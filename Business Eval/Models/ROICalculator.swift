@@ -74,7 +74,7 @@ class ROICalculator {
         let annualROI = pow(1 + totalROI, 1.0 / Double(investmentPeriod)) - 1
         
         // Calculate payback period
-        var paybackPeriod: Double = investmentPeriod
+        var paybackPeriod: Double = Double(investmentPeriod)
         for (index, cumulative) in cumulativeCashFlows.enumerated() {
             if cumulative >= totalInvestment {
                 paybackPeriod = Double(index + 1)
