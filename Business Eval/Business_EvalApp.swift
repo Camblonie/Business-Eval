@@ -17,6 +17,9 @@ struct Business_EvalApp: App {
             Correspondence.self,
             Valuation.self,
             BusinessImage.self,
+            ValuationScenario.self,
+            IndustryBenchmark.self,
+            OfferRecommendation.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
