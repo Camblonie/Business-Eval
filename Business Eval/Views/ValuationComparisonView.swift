@@ -300,7 +300,7 @@ struct ValuationComparisonView: View {
             }
         }
         
-        let average = confidenceScores.reduce(0, +) / Double(confidenceScores.count)
+        let average = Double(confidenceScores.reduce(0) { $0 + $1 }) / Double(confidenceScores.count)
         
         switch average {
         case 0..<1.5: return "Low"

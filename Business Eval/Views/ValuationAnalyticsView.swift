@@ -320,7 +320,7 @@ struct ValuationAnalyticsView: View {
         }
         
         guard !confidenceScores.isEmpty else { return "N/A" }
-        let average = confidenceScores.reduce(0, +) / Double(confidenceScores.count)
+        let average = Double(confidenceScores.reduce(0) { $0 + $1 }) / Double(confidenceScores.count)
         
         switch average {
         case 0..<1.5: return "Low"
@@ -393,7 +393,7 @@ struct ValuationAnalyticsView: View {
     private var industryInsight: String {
         guard !industryData.isEmpty else { return "No industry data available" }
         let topIndustry = industryData.first!
-        return "\(topIndustry.industry) has highest average valuations ($\(topIndustry.averageValue, specifier: "%.0f"))"
+        return "\(topIndustry.industry) has highest average valuations ($\(String(format: "%.0f", topIndustry.averageValue)))"
     }
     
     private func confidenceOrder(_ level: ConfidenceLevel) -> Int {

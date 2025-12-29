@@ -22,6 +22,7 @@ struct BusinessDetailView: View {
     @State private var showingValuationScenarios = false
     @State private var showingROIAnalysis = false
     @State private var showingOfferRecommendation = false
+    @State private var showingOwnerSelector = false
     
     var body: some View {
         ScrollView {
@@ -128,6 +129,9 @@ struct BusinessDetailView: View {
                 OwnerDetailView(owner: owner)
             }
         }
+        .sheet(isPresented: $showingOwnerSelector) {
+            BusinessOwnerSelectorView(business: business)
+        }
     }
     
     private var businessOverviewSection: some View {
@@ -233,7 +237,7 @@ struct BusinessDetailView: View {
                     .font(.caption)
                 } else {
                     Button("Add Owner") {
-                        // TODO: Implement Add Owner functionality
+                        showingOwnerSelector = true
                     }
                     .font(.caption)
                 }

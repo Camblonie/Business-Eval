@@ -19,54 +19,56 @@ struct ValuationScenariosView: View {
     @State private var isLoading = true
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                if isLoading {
-                    ProgressView("Generating scenarios...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding()
-                } else {
-                    // Scenario Overview
-                    scenarioOverviewSection
-                    
-                    // Scenario Comparison Chart
-                    scenarioChartSection
-                    
-                    // Scenario Details
-                    scenarioDetailsSection
-                    
-                    // Risk Analysis
-                    riskAnalysisSection
-                    
-                    // Investment Recommendation
-                    if let analysis = analysis {
-                        investmentRecommendationSection(analysis: analysis)
+        Group {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    if isLoading {
+                        ProgressView("Generating scenarios...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding()
+                    } else {
+                        // Scenario Overview
+                        scenarioOverviewSection
+                        
+                        // Scenario Comparison Chart
+                        scenarioChartSection
+                        
+                        // Scenario Details
+                        scenarioDetailsSection
+                        
+                        // Risk Analysis
+                        riskAnalysisSection
+                        
+                        // Investment Recommendation
+                        if let analysis = analysis {
+                            investmentRecommendationSection(analysis: analysis)
+                        }
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Valuation Scenarios")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingAddScenario = true }) {
+                        Image(systemName: "plus")
                     }
                 }
             }
-            .padding()
-        }
-        .navigationTitle("Valuation Scenarios")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingAddScenario = true }) {
-                    Image(systemName: "plus")
+            .sheet(isPresented: $showingAddScenario) {
+                AddScenarioView(business: business) { newScenario in
+                    scenarios.append(newScenario)
+                    updateAnalysis()
                 }
             }
-        }
-        .sheet(isPresented: $showingAddScenario) {
-            AddScenarioView(business: business) { newScenario in
-                scenarios.append(newScenario)
-                updateAnalysis()
+            .onAppear {
+                generateDefaultScenarios()
             }
-        }
-        .onAppear {
-            generateDefaultScenarios()
         }
     }
     
-    private func scenarioOverviewSection() -> some View {
+    private var scenarioOverviewSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Scenario Overview")
                 .font(.headline)
@@ -89,7 +91,7 @@ struct ValuationScenariosView: View {
         .cornerRadius(12)
     }
     
-    private func scenarioChartSection() -> some View {
+    private var scenarioChartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Scenario Comparison")
                 .font(.headline)
@@ -138,7 +140,7 @@ struct ValuationScenariosView: View {
         .cornerRadius(12)
     }
     
-    private func scenarioDetailsSection() -> some View {
+    private var scenarioDetailsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Scenario Details")
                 .font(.headline)
@@ -155,7 +157,7 @@ struct ValuationScenariosView: View {
         .cornerRadius(12)
     }
     
-    private func riskAnalysisSection() -> some View {
+    private var riskAnalysisSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Risk Analysis")
                 .font(.headline)
