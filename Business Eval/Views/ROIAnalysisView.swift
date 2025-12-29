@@ -24,7 +24,7 @@ struct ROIAnalysisView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Input Parameters
-                inputParametersSection
+                inputParametersSection()
                 
                 // ROI Results
                 if let results = roiResults {
@@ -378,7 +378,7 @@ enum FormatType {
     case number
     case percent
     
-    var formatter: FloatingPointFormat<Double> {
+    var formatter: Format {
         switch self {
         case .currency:
             return .currency(code: "USD")
@@ -440,7 +440,7 @@ struct SensitivityRow: View {
                     Text("Low")
                         .font(.caption2)
                         .foregroundColor(.red)
-                    Text(lowValue, format: format)
+                    Text(lowValue, format: format.formatter)
                         .font(.caption)
                         .foregroundColor(.red)
                 }
@@ -450,7 +450,7 @@ struct SensitivityRow: View {
                     Text("Base")
                         .font(.caption2)
                         .foregroundColor(.blue)
-                    Text(baseValue, format: format)
+                    Text(baseValue, format: format.formatter)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.blue)
