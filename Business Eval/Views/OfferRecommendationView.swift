@@ -188,7 +188,7 @@ struct OfferRecommendationView: View {
                 
                 AnalysisRow(
                     title: "Valuation Range",
-                    value: "$\(recommendation.valuationRange.lowerBound, specifier: "%.0f") - $\(recommendation.valuationRange.upperBound, specifier: "%.0f")",
+                    value: "$\(String(format: "%.0f", recommendation.valuationRange.lowerBound)) - $\(String(format: "%.0f", recommendation.valuationRange.upperBound))",
                     context: "Min to max valuations"
                 )
                 
