@@ -164,19 +164,19 @@ struct ValuationCalculatorView: View {
         VStack(alignment: .leading, spacing: 8) {
             switch methodology {
             case .revenueMultiple:
-                MetricRow(label: "Annual Revenue", value: "$\(business.annualRevenue, specifier: "%.0f")")
+                MetricRow(label: "Annual Revenue", value: "$\(String(format: "%.0f", business.annualRevenue))")
                 
             case .profitMultiple:
-                MetricRow(label: "Annual Profit", value: "$\(business.annualProfit, specifier: "%.0f")")
+                MetricRow(label: "Annual Profit", value: "$\(String(format: "%.0f", business.annualProfit))")
                 
             case .ebitdaMultiple:
-                MetricRow(label: "Annual Profit (EBITDA proxy)", value: "$\(business.annualProfit, specifier: "%.0f")")
+                MetricRow(label: "Annual Profit (EBITDA proxy)", value: "$\(String(format: "%.0f", business.annualProfit))")
                 Text("Note: Using annual profit as EBITDA proxy")
                     .font(.caption)
                     .foregroundColor(.orange)
                 
             case .sdeMultiple:
-                MetricRow(label: "Annual Profit (SDE proxy)", value: "$\(business.annualProfit, specifier: "%.0f")")
+                MetricRow(label: "Annual Profit (SDE proxy)", value: "$\(String(format: "%.0f", business.annualProfit))")
                 Text("Note: Using annual profit as SDE proxy")
                     .font(.caption)
                     .foregroundColor(.orange)
