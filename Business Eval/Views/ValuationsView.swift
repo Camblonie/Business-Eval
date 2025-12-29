@@ -31,7 +31,7 @@ struct ValuationsView: View {
         // Filter by search text
         if !searchText.isEmpty {
             filtered = filtered.filter { valuation in
-                (valuation.business?.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (valuation.business?.name.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 valuation.methodology.rawValue.localizedCaseInsensitiveContains(searchText)
             }
         }
@@ -192,59 +192,6 @@ struct FilterChip: View {
             .background(isSelected ? Color.blue : Color(.systemGray6))
             .foregroundColor(isSelected ? .white : .primary)
             .cornerRadius(16)
-    }
-}
-
-struct ValuationRowView: View {
-    let valuation: Valuation
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(valuation.business?.name ?? "Unknown Business")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Text("$\(valuation.calculatedValue, specifier: "%.0f")")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-            }
-            
-            Text(valuation.methodology.rawValue)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            HStack {
-                Text("Multiple: \(valuation.multiple, specifier: "%.1f")x")
-                    .font(.caption)
-                
-                Spacer()
-                
-                Text(valuation.confidenceLevel.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(confidenceColor.opacity(0.2))
-                    .foregroundColor(confidenceColor)
-                    .cornerRadius(4)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-    
-    private var confidenceColor: Color {
-        switch valuation.confidenceLevel {
-        case .low:
-            return .red
-        case .medium:
-            return .orange
-        case .high:
-            return .green
-        case .veryHigh:
-            return .blue
-        }
     }
 }
 
