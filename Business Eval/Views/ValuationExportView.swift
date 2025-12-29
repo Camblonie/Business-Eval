@@ -243,10 +243,10 @@ struct ValuationExportView: View {
             
             for valuation in selectedValuationObjects {
                 let valuationText = """
-                \(valuation.methodology.rawValue): $\(valuation.calculatedValue, specifier: "%.0f")
-                Multiple: \(valuation.multiple, specifier: "%.1f")x
+                \(valuation.methodology.rawValue): $\(String(format: "%.0f", valuation.calculatedValue))
+                Multiple: \(String(format: "%.1f", valuation.multiple))x
                 Confidence: \(valuation.confidenceLevel.rawValue)
-                Date: \(valuation.createdAt, style: .date)
+                Date: \(formatDate(valuation.createdAt))
                 """
                 
                 valuationText.draw(at: CGPoint(x: 50, y: yPosition), withAttributes: [
@@ -316,8 +316,25 @@ struct ValuationExportView: View {
     
     private func generateJSON() throws -> URL {
         let exportData = ValuationExportData(
-            business: business,
-            valuations: selectedValuationObjects,
+            business: BusinessExportData(
+                name: business.name,
+                industry: business.industry,
+                location: business.location,
+                askingPrice: business.askingPrice,
+                annualRevenue: business.annualRevenue,
+                annualProfit: business.annualProfit
+            ),
+            valuations: selectedValuationObjects.map { valuation in
+                ValuationItemExportData(
+                    id: valuation.id,
+                    calculatedValue: valuation.calculatedValue,
+                    methodology: valuation.methodology.rawValue,
+                    multiple: valuation.multiple,
+                    confidenceLevel: valuation.confidenceLevel.rawValue,
+                    notes: valuation.notes,
+                    createdAt: valuation.createdAt
+                )
+            },
             exportDate: Date()
         )
         
@@ -333,6 +350,12 @@ struct ValuationExportView: View {
         
         try data.write(to: fileURL)
         return fileURL
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
     }
 }
 
