@@ -219,9 +219,9 @@ struct ValuationExportView: View {
             let businessInfo = [
                 "Industry: \(business.industry)",
                 "Location: \(business.location)",
-                "Asking Price: $\(business.askingPrice, specifier: "%.0f")",
-                "Annual Revenue: $\(business.annualRevenue, specifier: "%.0f")",
-                "Annual Profit: $\(business.annualProfit, specifier: "%.0f")"
+                "Asking Price: $\(String(format: "%.0f", business.askingPrice))",
+                "Annual Revenue: $\(String(format: "%.0f", business.annualRevenue))",
+                "Annual Profit: $\(String(format: "%.0f", business.annualProfit))"
             ]
             
             for info in businessInfo {
@@ -338,8 +338,18 @@ struct ValuationExportView: View {
 
 struct ValuationExportData: Codable {
     let business: BusinessExportData
-    let valuations: [ValuationExportData]
+    let valuations: [ValuationItemExportData]
     let exportDate: Date
+}
+
+struct ValuationItemExportData: Codable {
+    let id: UUID
+    let calculatedValue: Double
+    let methodology: String
+    let multiple: Double
+    let confidenceLevel: String
+    let notes: String?
+    let createdAt: Date
 }
 
 struct BusinessExportData: Codable {
@@ -349,15 +359,6 @@ struct BusinessExportData: Codable {
     let askingPrice: Double
     let annualRevenue: Double
     let annualProfit: Double
-}
-
-struct ValuationExportData: Codable {
-    let calculatedValue: Double
-    let multiple: Double
-    let methodology: String
-    let confidenceLevel: String
-    let createdAt: Date
-    let notes: String?
 }
 
 struct ShareSheet: UIViewControllerRepresentable {
