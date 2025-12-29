@@ -364,11 +364,25 @@ struct InputRow: View {
             
             Spacer()
             
-            TextField("", value: $value, format: formatType.formatter)
+            TextField("", value: $value, format: .number)
                 .keyboardType(keyboardType)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 120)
                 .multilineTextAlignment(.trailing)
+                .onAppear {
+                    // Apply formatting hint based on formatType
+                    switch formatType {
+                    case .currency:
+                        // Currency formatting will be handled by display
+                        break
+                    case .percent:
+                        // Percent formatting will be handled by display
+                        break
+                    case .number:
+                        // Number formatting is default
+                        break
+                    }
+                }
         }
     }
 }
@@ -378,14 +392,23 @@ enum FormatType {
     case number
     case percent
     
-    var formatter: Format {
+    func format(_ value: Double) -> String {
         switch self {
         case .currency:
-            return .currency(code: "USD")
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.currencyCode = "USD"
+            return formatter.string(from: NSNumber(value: value)) ?? "$0"
         case .number:
-            return .number
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter.string(from: NSNumber(value: value)) ?? "0"
         case .percent:
-            return .percent.precision(.fractionLength(1))
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .percent
+            formatter.minimumFractionDigits = 1
+            formatter.maximumFractionDigits = 1
+            return formatter.string(from: NSNumber(value: value)) ?? "0%"
         }
     }
 }
@@ -440,7 +463,7 @@ struct SensitivityRow: View {
                     Text("Low")
                         .font(.caption2)
                         .foregroundColor(.red)
-                    Text(lowValue, format: format.formatter)
+                    Text(format.format(lowValue))
                         .font(.caption)
                         .foregroundColor(.red)
                 }
@@ -450,7 +473,7 @@ struct SensitivityRow: View {
                     Text("Base")
                         .font(.caption2)
                         .foregroundColor(.blue)
-                    Text(baseValue, format: format.formatter)
+                    Text(format.format(baseValue))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.blue)
@@ -461,7 +484,7 @@ struct SensitivityRow: View {
                     Text("High")
                         .font(.caption2)
                         .foregroundColor(.green)
-                    Text(highValue, format: format)
+                    Text(format.format(highValue))
                         .font(.caption)
                         .foregroundColor(.green)
                 }
