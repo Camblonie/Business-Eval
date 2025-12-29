@@ -76,6 +76,7 @@ final class ValuationScenario {
             self.confidenceLevel = .low
         }
     }
+}
 
 enum ScenarioType: String, CaseIterable, Codable {
     case optimistic = "Optimistic"
