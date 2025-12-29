@@ -81,8 +81,8 @@ struct IndustryBenchmarksView: View {
                 OverviewRow(label: "Industry", value: benchmark.industry)
                 OverviewRow(label: "Risk Level", value: benchmark.riskLevel.rawValue, color: riskColor(benchmark.riskLevel))
                 OverviewRow(label: "Typical Growth Rate", value: "\(String(format: "%.1f", benchmark.typicalGrowthRate * 100))%")
-                OverviewRow(label: "Average Business Size", value: "$\(benchmark.averageBusinessSize, specifier: "%.0f")")
-                OverviewRow(label: "Last Updated", value: benchmark.lastUpdated, style: .date)
+                OverviewRow(label: "Average Business Size", value: "$\(String(format: "%.0f", benchmark.averageBusinessSize))")
+                OverviewRow(label: "Last Updated", value: formatDate(benchmark.lastUpdated), style: .date)
             }
         }
         .padding()
@@ -505,6 +505,12 @@ struct MultipleComparisonRow: View {
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(8)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
     }
 }
 
