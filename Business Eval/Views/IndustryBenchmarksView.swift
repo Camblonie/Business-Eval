@@ -514,6 +514,40 @@ struct MultipleComparisonRow: View {
     }
 }
 
+struct OverviewRow: View {
+    let label: String
+    let value: String
+    let color: Color
+    let style: Text.DateStyle?
+    
+    init(label: String, value: String, color: Color = .primary, style: Text.DateStyle? = nil) {
+        self.label = label
+        self.value = value
+        self.color = color
+        self.style = style
+    }
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            if let style = style {
+                Text(value, style: style)
+                    .font(.subheadline)
+                    .foregroundColor(color)
+            } else {
+                Text(value)
+                    .font(.subheadline)
+                    .foregroundColor(color)
+            }
+        }
+    }
+}
+
 #Preview {
     let business = Business(
         name: "Test Business",
