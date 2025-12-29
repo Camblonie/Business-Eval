@@ -414,19 +414,23 @@ struct IndustryBenchmarksView: View {
         
         return insights
     }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
+    }
 }
 
 struct OverviewRow: View {
     let label: String
     let value: String
     let color: Color
-    let style: Text.DateStyle?
     
-    init(label: String, value: String, color: Color = .primary, style: Text.DateStyle? = nil) {
+    init(label: String, value: String, color: Color = .primary) {
         self.label = label
         self.value = value
         self.color = color
-        self.style = style
     }
     
     var body: some View {
@@ -437,15 +441,9 @@ struct OverviewRow: View {
             
             Spacer()
             
-            if let style = style {
-                Text(value, style: style)
-                    .font(.subheadline)
-                    .foregroundColor(color)
-            } else {
-                Text(value)
-                    .font(.subheadline)
-                    .foregroundColor(color)
-            }
+            Text(value)
+                .font(.subheadline)
+                .foregroundColor(color)
         }
     }
 }
@@ -505,12 +503,6 @@ struct MultipleComparisonRow: View {
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(8)
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        return formatter.string(from: date)
     }
 }
 
