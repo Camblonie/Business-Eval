@@ -173,19 +173,19 @@ struct ValuationDetailView: View {
             
             VStack(spacing: 8) {
                 if let revenueMultiple = valuation.revenueMultiple {
-                    MetricRow(label: "Revenue Multiple", value: "\(revenueMultiple, specifier: "%.2f")x")
+                    ValuationMetricRow(label: "Revenue Multiple", value: "\(String(format: "%.2f", revenueMultiple))x")
                 }
                 
                 if let profitMultiple = valuation.profitMultiple {
-                    MetricRow(label: "Profit Multiple", value: "\(profitMultiple, specifier: "%.2f")x")
+                    ValuationMetricRow(label: "Profit Multiple", value: "\(String(format: "%.2f", profitMultiple))x")
                 }
                 
                 if let ebitdaMultiple = valuation.ebitdaMultiple {
-                    MetricRow(label: "EBITDA Multiple", value: "\(ebitdaMultiple, specifier: "%.2f")x")
+                    ValuationMetricRow(label: "EBITDA Multiple", value: "\(String(format: "%.2f", ebitdaMultiple))x")
                 }
                 
                 if let sdeMultiple = valuation.sdeMultiple {
-                    MetricRow(label: "SDE Multiple", value: "\(sdeMultiple, specifier: "%.2f")x")
+                    ValuationMetricRow(label: "SDE Multiple", value: "\(String(format: "%.2f", sdeMultiple))x")
                 }
                 
                 if valuation.revenueMultiple == nil && valuation.profitMultiple == nil && 
@@ -292,7 +292,7 @@ struct ValuationDetailView: View {
     }
 }
 
-struct MetricRow: View {
+struct ValuationMetricRow: View {
     let label: String
     let value: String
     
