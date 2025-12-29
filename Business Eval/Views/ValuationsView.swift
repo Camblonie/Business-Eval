@@ -100,7 +100,7 @@ struct ValuationsView: View {
                                     }
                                 }
                             } label: {
-                                FilterChip(
+                                ValuationFilterChip(
                                     title: selectedMethodology?.rawValue ?? "Methodology",
                                     isSelected: selectedMethodology != nil
                                 )
@@ -117,7 +117,7 @@ struct ValuationsView: View {
                                     }
                                 }
                             } label: {
-                                FilterChip(
+                                ValuationFilterChip(
                                     title: selectedConfidence?.rawValue ?? "Confidence",
                                     isSelected: selectedConfidence != nil
                                 )
@@ -131,7 +131,7 @@ struct ValuationsView: View {
                                     }
                                 }
                             } label: {
-                                FilterChip(
+                                ValuationFilterChip(
                                     title: sortOption.rawValue,
                                     isSelected: true
                                 )
@@ -180,7 +180,7 @@ struct ValuationsView: View {
     }
 }
 
-struct FilterChip: View {
+struct ValuationFilterChip: View {
     let title: String
     let isSelected: Bool
     

@@ -104,22 +104,20 @@ struct ValuationCalculatorView: View {
                     HStack {
                         Text("Valuation")
                         Spacer()
-                        Text("$\(calculatedValue, specifier: "%.0f")")
+                        Text("$\(String(format: "%.0f", calculatedValue))")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.green)
                     }
                     
-                    if let business = business as? Business {
-                        let difference = calculatedValue - business.askingPrice
-                        let percentage = business.askingPrice > 0 ? (difference / business.askingPrice) * 100 : 0
-                        
-                        HStack {
-                            Text("vs Asking Price")
-                            Spacer()
-                            Text("\(difference >= 0 ? "+" : "")$\(difference, specifier: "%.0f") (\(String(format: "%.1f", percentage))%)")
-                                .foregroundColor(difference >= 0 ? .green : .red)
-                        }
+                    let difference = calculatedValue - business.askingPrice
+                    let percentage = business.askingPrice > 0 ? (difference / business.askingPrice) * 100 : 0
+                    
+                    HStack {
+                        Text("vs Asking Price")
+                        Spacer()
+                        Text("\(difference >= 0 ? "+" : "")$\(String(format: "%.0f", difference)) (\(String(format: "%.1f", percentage))%)")
+                            .foregroundColor(difference >= 0 ? .green : .red)
                     }
                 }
                 
