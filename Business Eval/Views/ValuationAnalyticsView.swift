@@ -116,14 +116,14 @@ struct ValuationAnalyticsView: View {
             
             AnalyticsCard(
                 title: "Average Value",
-                value: "$\(averageValuation, specifier: "%.0f")",
+                value: "$\(String(format: "%.0f", averageValuation))",
                 subtitle: "Across all valuations",
                 color: .green
             )
             
             AnalyticsCard(
                 title: "Avg Multiple",
-                value: "\(averageMultiple, specifier: "%.1f")x",
+                value: "\(String(format: "%.1f", averageMultiple))x",
                 subtitle: "Revenue/Profit multiples",
                 color: .orange
             )
@@ -251,7 +251,6 @@ struct ValuationAnalyticsView: View {
                 AxisGridLine()
                 AxisValueLabel()
                     .font(.caption)
-                    .rotationEffect(.degrees(-45))
             }
         }
         .chartYAxis {

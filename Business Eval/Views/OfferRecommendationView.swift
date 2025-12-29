@@ -182,7 +182,7 @@ struct OfferRecommendationView: View {
             VStack(spacing: 12) {
                 AnalysisRow(
                     title: "Average Valuation",
-                    value: "$\(recommendation.averageValuation, specifier: "%.0f")",
+                    value: "$\(String(format: "%.0f", recommendation.averageValuation))",
                     context: "Based on all valuations"
                 )
                 

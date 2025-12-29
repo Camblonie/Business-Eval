@@ -27,19 +27,19 @@ struct OfferRecommendation {
     let nextSteps: [NextStep]
 }
 
-struct MarketFactor {
+struct MarketFactor: Hashable {
     let description: String
     let isPositive: Bool
 }
 
-struct RiskFactor {
+struct RiskFactor: Hashable {
     let title: String
     let description: String
     let severity: RiskSeverity
     let mitigation: String
 }
 
-struct NextStep {
+struct NextStep: Hashable {
     let order: Int
     let description: String
 }
