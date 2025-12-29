@@ -378,7 +378,7 @@ enum FormatType {
     case number
     case percent
     
-    var formatter: Format {
+    var formatter: FloatingPointFormat<Double> {
         switch self {
         case .currency:
             return .currency(code: "USD")
@@ -427,7 +427,7 @@ struct SensitivityRow: View {
     let baseValue: Double
     let lowValue: Double
     let highValue: Double
-    let format: Format
+    let format: FormatType
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

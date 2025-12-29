@@ -222,31 +222,31 @@ struct ValuationComparisonView: View {
                 .fontWeight(.bold)
             
             VStack(spacing: 8) {
-                AnalysisRow(
+                ComparisonAnalysisRow(
                     title: "Average Valuation",
-                    value: "$\(averageValuation, specifier: "%.0f")",
+                    value: "$\(String(format: "%.0f", averageValuation))",
                     color: .blue
                 )
                 
-                AnalysisRow(
+                ComparisonAnalysisRow(
                     title: "Value Range",
-                    value: "$\(minValuation, specifier: "%.0f") - $\(maxValuation, specifier: "%.0f")",
+                    value: "$\(String(format: "%.0f", minValuation)) - $\(String(format: "%.0f", maxValuation))",
                     color: .gray
                 )
                 
-                AnalysisRow(
+                ComparisonAnalysisRow(
                     title: "Value Variance",
-                    value: "$\(valueVariance, specifier: "%.0f") (\(String(format: "%.1f", variancePercentage))%)",
+                    value: "$\(String(format: "%.0f", valueVariance)) (\(String(format: "%.1f", variancePercentage))%)",
                     color: valueVariance > averageValuation * 0.2 ? .orange : .green
                 )
                 
-                AnalysisRow(
+                ComparisonAnalysisRow(
                     title: "vs Asking Price",
-                    value: "$\(askingPriceDifference, specifier: "%.0f") (\(String(format: "%.1f", askingPricePercentage))%)",
+                    value: "$\(String(format: "%.0f", askingPriceDifference)) (\(String(format: "%.1f", askingPricePercentage))%)",
                     color: askingPriceDifference >= 0 ? .green : .red
                 )
                 
-                AnalysisRow(
+                ComparisonAnalysisRow(
                     title: "Average Confidence",
                     value: averageConfidenceLevel,
                     color: confidenceColor
@@ -330,7 +330,7 @@ struct ValuationComparisonView: View {
     }
 }
 
-struct AnalysisRow: View {
+struct ComparisonAnalysisRow: View {
     let title: String
     let value: String
     let color: Color
