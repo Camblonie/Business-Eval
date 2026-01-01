@@ -1,33 +1,34 @@
 //
-//  OwnersView.swift
+//  BrokersView.swift
 //  Business Eval
 //
-//  Created by Scott Campbell on 12/28/25.
+//  Created by Scott Campbell on 12/30/25.
 //
 
 import SwiftUI
 import SwiftData
 
-struct OwnersView: View {
-    @Query(sort: \Owner.name, order: .forward) private var owners: [Owner]
+struct BrokersView: View {
+    @Query(sort: \Broker.name, order: .forward) private var brokers: [Broker]
     @State private var searchText = ""
-    @State private var showingAddOwner = false
-    @State private var selectedOwner: Owner?
-    @State private var selectedTab: OwnerTab = .owners
+    @State private var showingAddBroker = false
+    @State private var selectedBroker: Broker?
+    @State private var selectedTab: BrokerTab = .brokers
     
-    enum OwnerTab: String, CaseIterable {
-        case owners = "Owners"
+    enum BrokerTab: String, CaseIterable {
+        case brokers = "Brokers"
         case analytics = "Analytics"
     }
     
-    private var filteredOwners: [Owner] {
+    private var filteredBrokers: [Broker] {
         if searchText.isEmpty {
-            return owners
+            return brokers
         } else {
-            return owners.filter { owner in
-                owner.name.localizedCaseInsensitiveContains(searchText) ||
-                owner.email?.localizedCaseInsensitiveContains(searchText) == true ||
-                owner.phone?.localizedCaseInsensitiveContains(searchText) == true
+            return brokers.filter { broker in
+                broker.name.localizedCaseInsensitiveContains(searchText) ||
+                broker.email?.localizedCaseInsensitiveContains(searchText) == true ||
+                broker.phone?.localizedCaseInsensitiveContains(searchText) == true ||
+                broker.company?.localizedCaseInsensitiveContains(searchText) == true
             }
         }
     }
@@ -40,32 +41,32 @@ struct OwnersView: View {
                 
                 // Content based on selected tab
                 TabView(selection: $selectedTab) {
-                    // Owners tab
-                    ownersTabContent
-                        .tag(OwnerTab.owners)
+                    // Brokers tab
+                    brokersTabContent
+                        .tag(BrokerTab.brokers)
                     
                     // Analytics tab
-                    OwnerAnalyticsView()
-                        .tag(OwnerTab.analytics)
+                    BrokerAnalyticsView()
+                        .tag(BrokerTab.analytics)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
-            .navigationTitle("Owners")
+            .navigationTitle("Brokers")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if selectedTab == .owners {
-                        Button(action: { showingAddOwner = true }) {
+                    if selectedTab == .brokers {
+                        Button(action: { showingAddBroker = true }) {
                             Image(systemName: "plus")
                         }
                     }
                 }
             }
-            .sheet(isPresented: $showingAddOwner) {
-                AddOwnerView()
+            .sheet(isPresented: $showingAddBroker) {
+                AddBrokerView()
             }
-            .sheet(item: $selectedOwner) { owner in
+            .sheet(item: $selectedBroker) { broker in
                 NavigationView {
-                    OwnerDetailView(owner: owner)
+                    BrokerDetailView(broker: broker)
                 }
             }
         }
@@ -73,7 +74,7 @@ struct OwnersView: View {
     
     private var tabSelector: some View {
         HStack {
-            ForEach(OwnerTab.allCases, id: \.self) { tab in
+            ForEach(BrokerTab.allCases, id: \.self) { tab in
                 Button(action: { selectedTab = tab }) {
                     Text(tab.rawValue)
                         .font(AppTheme.Fonts.subheadlineMedium)
@@ -93,16 +94,16 @@ struct OwnersView: View {
         .background(AppTheme.Colors.background)
     }
     
-    private var ownersTabContent: some View {
+    private var brokersTabContent: some View {
         VStack(spacing: 0) {
-            // Search bar (only show on owners tab)
+            // Search bar (only show on brokers tab)
             searchBar
             
             // Content
-            if filteredOwners.isEmpty {
+            if filteredBrokers.isEmpty {
                 emptyStateView
             } else {
-                ownersList
+                brokersList
             }
         }
     }
@@ -112,7 +113,7 @@ struct OwnersView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(AppTheme.Colors.secondary)
             
-            TextField("Search owners...", text: $searchText)
+            TextField("Search brokers...", text: $searchText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
         .padding(.horizontal)
@@ -123,27 +124,27 @@ struct OwnersView: View {
     private var emptyStateView: some View {
         if searchText.isEmpty {
             EmptyStateView(
-                icon: "person.2",
-                title: "No owners yet",
-                message: "Add your first owner to get started",
-                actionTitle: "Add Owner"
+                icon: "briefcase",
+                title: "No brokers yet",
+                message: "Add your first broker to get started",
+                actionTitle: "Add Broker"
             ) {
-                showingAddOwner = true
+                showingAddBroker = true
             }
         } else {
             EmptyStateView(
-                icon: "person.2",
-                title: "No owners found",
+                icon: "briefcase",
+                title: "No brokers found",
                 message: "Try adjusting your search terms"
             )
         }
     }
     
-    private var ownersList: some View {
+    private var brokersList: some View {
         List {
-            ForEach(Array(filteredOwners.enumerated()), id: \.element.id) { index, owner in
-                OwnerRow(owner: owner) {
-                    selectedOwner = owner
+            ForEach(Array(filteredBrokers.enumerated()), id: \.element.id) { index, broker in
+                BrokerRow(broker: broker) {
+                    selectedBroker = broker
                 }
                 .staggeredAppearance(index: index)
             }
@@ -152,20 +153,20 @@ struct OwnersView: View {
     }
 }
 
-struct OwnerRow: View {
-    let owner: Owner
+struct BrokerRow: View {
+    let broker: Broker
     let onTap: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
             HStack {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(owner.name)
+                    Text(broker.name)
                         .font(AppTheme.Fonts.headline)
                         .foregroundColor(.primary)
                     
-                    if let title = owner.title {
-                        Text(title)
+                    if let company = broker.company {
+                        Text(company)
                             .font(AppTheme.Fonts.subheadline)
                             .foregroundColor(AppTheme.Colors.secondary)
                     }
@@ -174,11 +175,11 @@ struct OwnerRow: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(owner.businesses.count)")
+                    Text("\(broker.businesses.count)")
                         .font(AppTheme.Fonts.title3)
                         .foregroundColor(AppTheme.Colors.primary)
                     
-                    Text("business\(owner.businesses.count == 1 ? "" : "es")")
+                    Text("business\(broker.businesses.count == 1 ? "" : "es")")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(AppTheme.Colors.secondary)
                 }
@@ -186,7 +187,7 @@ struct OwnerRow: View {
             
             // Contact info row
             HStack {
-                if let email = owner.email {
+                if let email = broker.email {
                     HStack(spacing: AppTheme.Spacing.xs) {
                         Image(systemName: "envelope")
                             .font(AppTheme.Fonts.caption)
@@ -198,7 +199,7 @@ struct OwnerRow: View {
                     }
                 }
                 
-                if let phone = owner.phone {
+                if let phone = broker.phone {
                     Spacer()
                     
                     HStack(spacing: AppTheme.Spacing.xs) {
@@ -214,7 +215,7 @@ struct OwnerRow: View {
                 Spacer()
                 
                 // Contact preference badge
-                StatusBadge(owner.contactPreference.rawValue, color: contactPreferenceColor)
+                StatusBadge(broker.contactPreference.rawValue, color: contactPreferenceColor)
             }
         }
         .padding(.vertical, AppTheme.Spacing.sm)
@@ -225,7 +226,7 @@ struct OwnerRow: View {
     }
     
     private var contactPreferenceColor: Color {
-        switch owner.contactPreference {
+        switch broker.contactPreference {
         case .email: return AppTheme.Colors.primary
         case .phone: return AppTheme.Colors.success
         case .text: return AppTheme.Colors.warning
@@ -235,6 +236,6 @@ struct OwnerRow: View {
 }
 
 #Preview {
-    OwnersView()
-        .modelContainer(for: Owner.self, inMemory: true)
+    BrokersView()
+        .modelContainer(for: Broker.self, inMemory: true)
 }

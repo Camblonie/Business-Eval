@@ -29,10 +29,11 @@ struct BusinessListView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(filteredBusinesses) { business in
+                ForEach(Array(filteredBusinesses.enumerated()), id: \.element.id) { index, business in
                     NavigationLink(destination: BusinessDetailView(business: business)) {
                         BusinessRowView(business: business)
                     }
+                    .staggeredAppearance(index: index)
                 }
                 .onDelete(perform: deleteBusinesses)
             }
@@ -64,65 +65,48 @@ struct BusinessRowView: View {
     let business: Business
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(business.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            HStack(alignment: .top) {
+                // Left side: Business info
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(business.name)
+                        .font(AppTheme.Fonts.headline)
+                        .foregroundColor(.primary)
+                    
+                    Text(business.industry)
+                        .font(AppTheme.Fonts.subheadline)
+                        .foregroundColor(AppTheme.Colors.secondary)
+                    
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Label(business.location, systemImage: "location.fill")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                    }
+                }
                 
                 Spacer()
                 
-                Text(business.status.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(statusColor.opacity(0.2))
-                    .foregroundColor(statusColor)
-                    .cornerRadius(8)
-            }
-            
-            Text(business.industry)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            HStack {
-                Text(business.location)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text("Asking: \(business.askingPrice, specifier: "$%.0f")")
-                    .font(.caption)
-                    .foregroundColor(.green)
-                    .fontWeight(.medium)
+                // Right side: Price and status with visual hierarchy
+                VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                    Text(formatAskingPrice(business.askingPrice))
+                        .font(AppTheme.Fonts.subheadlineMedium)
+                        .foregroundColor(AppTheme.Colors.money)
+                    
+                    BusinessStatusBadge(business.status)
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, AppTheme.Spacing.sm)
     }
     
-    private var statusColor: Color {
-        switch business.status {
-        case .new:
-            return .blue
-        case .researching:
-            return .orange
-        case .contacted:
-            return .purple
-        case .underReview:
-            return .yellow
-        case .offerMade:
-            return .green
-        case .negotiating:
-            return .red
-        case .dueDiligence:
-            return .indigo
-        case .closed:
-            return .primary
-        case .rejected:
-            return .red
-        case .notInterested:
-            return .gray
+    /// Formats the asking price with K/M suffix for readability
+    private func formatAskingPrice(_ price: Double) -> String {
+        if price >= 1_000_000 {
+            return String(format: "Asking: $%.1fM", price / 1_000_000)
+        } else if price >= 1_000 {
+            return String(format: "Asking: $%.0fK", price / 1_000)
+        } else {
+            return String(format: "Asking: $%.0f", price)
         }
     }
 }

@@ -23,30 +23,52 @@ struct BusinessDetailView: View {
     @State private var showingROIAnalysis = false
     @State private var showingOfferRecommendation = false
     @State private var showingOwnerSelector = false
+    @State private var showingEditFinancialSummary = false
+    @State private var showingBrokerSelector = false
+    @State private var showingBrokerDetail = false
+    @State private var showingEditBusiness = false
+    @State private var showingLinkCorrespondence = false
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Business Overview
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sectionSpacing) {
+                // Business Overview - appears first with no delay
                 businessOverviewSection
+                    .fadeIn(delay: 0)
                 
-                // Financial Summary
+                // Financial Summary - staggered appearance
                 financialSummarySection
+                    .fadeIn(delay: 0.05)
                 
                 // Business Details
                 businessDetailsSection
+                    .fadeIn(delay: 0.1)
                 
                 // Business Images
                 imagesSection
+                    .fadeIn(delay: 0.15)
                 
                 // Owner Information
                 ownerSection
+                    .fadeIn(delay: 0.2)
+                
+                // Broker Information
+                brokerSection
+                    .fadeIn(delay: 0.25)
+                
+                // Notes
+                if let notes = business.notes, !notes.isEmpty {
+                    notesSection
+                        .fadeIn(delay: 0.3)
+                }
                 
                 // Correspondence History
                 correspondenceSection
+                    .fadeIn(delay: 0.35)
                 
                 // Valuations
                 valuationsSection
+                    .fadeIn(delay: 0.4)
             }
             .padding()
         }
@@ -54,43 +76,51 @@ struct BusinessDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(action: { showingAddCorrespondence = true }) {
-                        Label("Add Correspondence", systemImage: "envelope")
+                HStack(spacing: AppTheme.Spacing.md) {
+                    // Edit button
+                    Button(action: { showingEditBusiness = true }) {
+                        Image(systemName: "pencil.circle.fill")
                     }
-                    Button(action: { showingAddValuation = true }) {
-                        Label("Add Valuation", systemImage: "chart.line.uptrend.xyaxis")
-                    }
-                    Button(action: { showingValuationCalculator = true }) {
-                        Label("Valuation Calculator", systemImage: "calculator")
-                    }
-                    if business.valuations.count >= 2 {
-                        Button(action: { showingValuationComparison = true }) {
-                            Label("Compare Valuations", systemImage: "chart.bar.doc.horizontal")
+                    
+                    // Actions menu
+                    Menu {
+                        Button(action: { showingAddCorrespondence = true }) {
+                            Label("Add Correspondence", systemImage: "envelope")
                         }
-                    }
-                    if business.valuations.count >= 1 {
-                        Button(action: { showingValuationExport = true }) {
-                            Label("Export Valuations", systemImage: "square.and.arrow.up")
+                        Button(action: { showingAddValuation = true }) {
+                            Label("Add Valuation", systemImage: "chart.line.uptrend.xyaxis")
                         }
+                        Button(action: { showingValuationCalculator = true }) {
+                            Label("Valuation Calculator", systemImage: "calculator")
+                        }
+                        if business.valuations.count >= 2 {
+                            Button(action: { showingValuationComparison = true }) {
+                                Label("Compare Valuations", systemImage: "chart.bar.doc.horizontal")
+                            }
+                        }
+                        if business.valuations.count >= 1 {
+                            Button(action: { showingValuationExport = true }) {
+                                Label("Export Valuations", systemImage: "square.and.arrow.up")
+                            }
+                        }
+                        Button(action: { showingIndustryBenchmarks = true }) {
+                            Label("Industry Benchmarks", systemImage: "building.2")
+                        }
+                        Button(action: { showingValuationScenarios = true }) {
+                            Label("Valuation Scenarios", systemImage: "waveform.path.ecg")
+                        }
+                        Button(action: { showingROIAnalysis = true }) {
+                            Label("ROI Analysis", systemImage: "chart.line.uptrend.xyaxis.circle")
+                        }
+                        Button(action: { showingOfferRecommendation = true }) {
+                            Label("Offer Recommendation", systemImage: "hand.tap")
+                        }
+                        Button(action: { showingAddImages = true }) {
+                            Label("Add Images", systemImage: "photo")
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
                     }
-                    Button(action: { showingIndustryBenchmarks = true }) {
-                        Label("Industry Benchmarks", systemImage: "building.2")
-                    }
-                    Button(action: { showingValuationScenarios = true }) {
-                        Label("Valuation Scenarios", systemImage: "waveform.path.ecg")
-                    }
-                    Button(action: { showingROIAnalysis = true }) {
-                        Label("ROI Analysis", systemImage: "chart.line.uptrend.xyaxis.circle")
-                    }
-                    Button(action: { showingOfferRecommendation = true }) {
-                        Label("Offer Recommendation", systemImage: "hand.tap")
-                    }
-                    Button(action: { showingAddImages = true }) {
-                        Label("Add Images", systemImage: "photo")
-                    }
-                } label: {
-                    Image(systemName: "plus.circle.fill")
                 }
             }
         }
@@ -132,89 +162,148 @@ struct BusinessDetailView: View {
         .sheet(isPresented: $showingOwnerSelector) {
             BusinessOwnerSelectorView(business: business)
         }
+        .sheet(isPresented: $showingEditFinancialSummary) {
+            EditFinancialSummaryView(business: business)
+        }
+        .sheet(isPresented: $showingBrokerSelector) {
+            BusinessBrokerSelectorView(business: business)
+        }
+        .sheet(isPresented: $showingBrokerDetail) {
+            if let broker = business.broker {
+                NavigationView {
+                    BrokerDetailView(broker: broker)
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditBusiness) {
+            EditBusinessView(business: business)
+        }
+        .sheet(isPresented: $showingLinkCorrespondence) {
+            BusinessCorrespondenceSelectorView(business: business)
+        }
     }
     
     private var businessOverviewSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 Text(business.name)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(AppTheme.Fonts.title2)
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
+                // Use themed status badge component with white text for contrast
                 Text(business.status.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(statusColor.opacity(0.2))
-                    .foregroundColor(statusColor)
-                    .cornerRadius(12)
+                    .font(AppTheme.Fonts.captionMedium)
+                    .padding(.horizontal, AppTheme.Badge.largeHorizontalPadding)
+                    .padding(.vertical, AppTheme.Badge.largeVerticalPadding)
+                    .background(Color.white.opacity(0.2))
+                    .foregroundColor(.white)
+                    .cornerRadius(AppTheme.CornerRadius.large)
             }
             
             Text(business.industry)
-                .font(.headline)
-                .foregroundColor(.secondary)
+                .font(AppTheme.Fonts.headline)
+                .foregroundColor(.white.opacity(0.9))
             
             HStack {
                 Label(business.location, systemImage: "location")
                 Spacer()
                 Label("\(business.yearsEstablished) years", systemImage: "calendar")
             }
-            .font(.subheadline)
-            .foregroundColor(.secondary)
+            .font(AppTheme.Fonts.subheadline)
+            .foregroundColor(.white.opacity(0.8))
             
             if !business.businessDescription.isEmpty {
                 Text(business.businessDescription)
-                    .font(.body)
-                    .padding(.top, 4)
+                    .font(AppTheme.Fonts.body)
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(.top, AppTheme.Spacing.xs)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .heroCardStyle()
     }
     
     private var financialSummarySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Financial Summary")
-                .font(.headline)
-                .fontWeight(.bold)
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Text("Financial Summary")
+                    .font(AppTheme.Fonts.headline)
+                
+                Spacer()
+                
+                Button(action: { showingEditFinancialSummary = true }) {
+                    Image(systemName: "pencil.circle.fill")
+                        .foregroundColor(AppTheme.Colors.primary)
+                        .font(.system(size: AppTheme.IconSize.medium))
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
             
-            VStack(spacing: 8) {
-                FinancialRow(label: "Asking Price", value: business.askingPrice, color: .green)
-                FinancialRow(label: "Annual Revenue", value: business.annualRevenue, color: .blue)
-                FinancialRow(label: "Annual Profit", value: business.annualProfit, color: .purple)
+            // Metric cards grid for key financials
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.sm) {
+                ThemedMetricCard(
+                    title: "Asking Price",
+                    value: formatCurrency(business.askingPrice),
+                    icon: "tag.fill",
+                    color: AppTheme.Colors.money
+                )
+                
+                ThemedMetricCard(
+                    title: "Annual Revenue",
+                    value: formatCurrency(business.annualRevenue),
+                    icon: "chart.line.uptrend.xyaxis",
+                    color: AppTheme.Colors.revenue
+                )
+                
+                ThemedMetricCard(
+                    title: "Annual Profit",
+                    value: formatCurrency(business.annualProfit),
+                    icon: "dollarsign.circle.fill",
+                    color: AppTheme.Colors.profit
+                )
                 
                 if business.annualRevenue > 0 {
                     let profitMargin = (business.annualProfit / business.annualRevenue) * 100
-                    FinancialRow(label: "Profit Margin", value: profitMargin, color: .orange, isPercentage: true)
+                    ThemedMetricCard(
+                        title: "Profit Margin",
+                        value: String(format: "%.1f%%", profitMargin),
+                        icon: "percent",
+                        color: AppTheme.Colors.margin,
+                        trend: profitMargin >= 20 ? .up : (profitMargin >= 10 ? .neutral : .down)
+                    )
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .elevatedCardStyle()
+    }
+    
+    /// Formats currency with K/M suffixes for large numbers
+    private func formatCurrency(_ amount: Double) -> String {
+        if amount >= 1_000_000 {
+            return String(format: "$%.1fM", amount / 1_000_000)
+        } else if amount >= 1_000 {
+            return String(format: "$%.0fK", amount / 1_000)
+        } else {
+            return String(format: "$%.0f", amount)
+        }
     }
     
     private var businessDetailsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Business Details")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(spacing: 8) {
-                DetailRow(label: "Employees", value: "\(business.numberOfEmployees)")
-                DetailRow(label: "Years Established", value: "\(business.yearsEstablished)")
+            VStack(spacing: AppTheme.Spacing.sm) {
+                ThemedDetailRow(label: "Employees", value: "\(business.numberOfEmployees)")
+                ThemedDetailRow(label: "Years Established", value: "\(business.yearsEstablished)")
                 
                 if let listingURL = business.listingURL, !listingURL.isEmpty {
-                    DetailRow(label: "Listing", value: listingURL, isURL: true)
+                    ThemedDetailRow(label: "Listing", value: listingURL, isURL: true)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var imagesSection: some View {
@@ -222,166 +311,179 @@ struct BusinessDetailView: View {
     }
     
     private var ownerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Owner Information")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            SectionHeader(
+                "Owner Information",
+                actionTitle: business.owner != nil ? "View Details" : "Add Owner"
+            ) {
                 if business.owner != nil {
-                    Button("View Details") {
-                        showingOwnerDetail = true
-                    }
-                    .font(.caption)
+                    showingOwnerDetail = true
                 } else {
-                    Button("Add Owner") {
-                        showingOwnerSelector = true
-                    }
-                    .font(.caption)
+                    showingOwnerSelector = true
                 }
             }
             
             if let owner = business.owner {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text(owner.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(AppTheme.Fonts.subheadlineMedium)
                     
                     if let email = owner.email {
                         Text(email)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
                     }
                     
                     if let phone = owner.phone {
                         Text(phone)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
                     }
                 }
             } else {
                 Text("No owner information available")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
+    }
+    
+    private var brokerSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            SectionHeader(
+                "Broker Information",
+                actionTitle: business.broker != nil ? "View Details" : "Add Broker"
+            ) {
+                if business.broker != nil {
+                    showingBrokerDetail = true
+                } else {
+                    showingBrokerSelector = true
+                }
+            }
+            
+            if let broker = business.broker {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(broker.name)
+                        .font(AppTheme.Fonts.subheadlineMedium)
+                    
+                    if let company = broker.company {
+                        Text(company)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                    }
+                    
+                    if let email = broker.email {
+                        Text(email)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                    }
+                    
+                    if let commission = broker.commission {
+                        Text("Commission: \(commission, specifier: "%.1f")%")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                    }
+                }
+            } else {
+                Text("No broker information available")
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
+            }
+        }
+        .cardStyle()
+    }
+    
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            SectionHeader(
+                "Notes",
+                actionTitle: "Edit"
+            ) {
+                showingEditBusiness = true
+            }
+            
+            if let notes = business.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(AppTheme.Fonts.body)
+                    .foregroundColor(.primary)
+            }
+        }
+        .cardStyle()
     }
     
     private var correspondenceSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            // Header with action buttons
             HStack {
                 Text("Correspondence History")
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(AppTheme.Fonts.headline)
+                
+                if !business.correspondence.isEmpty {
+                    Text("\(business.correspondence.count)")
+                        .font(AppTheme.Fonts.captionMedium)
+                        .padding(.horizontal, AppTheme.Badge.horizontalPadding)
+                        .padding(.vertical, AppTheme.Badge.verticalPadding)
+                        .background(AppTheme.Colors.primary.opacity(0.2))
+                        .foregroundColor(AppTheme.Colors.primary)
+                        .cornerRadius(AppTheme.CornerRadius.small)
+                }
                 
                 Spacer()
                 
-                Text("\(business.correspondence.count)")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.blue.opacity(0.2))
-                    .foregroundColor(.blue)
-                    .cornerRadius(8)
+                // Action buttons
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Button(action: { showingLinkCorrespondence = true }) {
+                        Image(systemName: "link.badge.plus")
+                            .font(.system(size: AppTheme.IconSize.small))
+                            .foregroundColor(AppTheme.Colors.primary)
+                    }
+                    
+                    Button(action: { showingAddCorrespondence = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: AppTheme.IconSize.small))
+                            .foregroundColor(AppTheme.Colors.primary)
+                    }
+                }
             }
             
             if business.correspondence.isEmpty {
                 Text("No correspondence recorded")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
             } else {
                 ForEach(business.correspondence.sorted(by: { $0.date > $1.date }).prefix(3)) { correspondence in
                     CorrespondenceRowView(correspondence: correspondence)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var valuationsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Valuations")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                Text("\(business.valuations.count)")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.green.opacity(0.2))
-                    .foregroundColor(.green)
-                    .cornerRadius(8)
-            }
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            SectionHeader(
+                "Valuations",
+                count: business.valuations.count,
+                countColor: AppTheme.Colors.money
+            )
             
             if business.valuations.isEmpty {
                 Text("No valuations performed")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
             } else {
                 ForEach(business.valuations.sorted(by: { $0.createdAt > $1.createdAt }).prefix(3)) { valuation in
                     ValuationRowView(valuation: valuation)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-    
-    private var statusColor: Color {
-        switch business.status {
-        case .new: return .blue
-        case .researching: return .orange
-        case .contacted: return .purple
-        case .underReview: return .yellow
-        case .offerMade: return .green
-        case .negotiating: return .red
-        case .dueDiligence: return .indigo
-        case .closed: return .primary
-        case .rejected: return .red
-        case .notInterested: return .gray
-        }
+        .cardStyle()
     }
 }
 
-struct FinancialRow: View {
-    let label: String
-    let value: Double
-    let color: Color
-    let isPercentage: Bool
-    
-    init(label: String, value: Double, color: Color, isPercentage: Bool = false) {
-        self.label = label
-        self.value = value
-        self.color = color
-        self.isPercentage = isPercentage
-    }
-    
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-            
-            Spacer()
-            
-            Text(isPercentage ? String(format: "%.1f%%", value) : String(format: "$%.0f", value))
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(color)
-        }
-    }
-}
 
+// DetailRow delegates to ThemedDetailRow from Theme.swift for consistency
 struct DetailRow: View {
     let label: String
     let value: String
@@ -394,22 +496,7 @@ struct DetailRow: View {
     }
     
     var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-            
-            Spacer()
-            
-            if isURL {
-                Link("View Listing", destination: URL(string: value)!)
-                    .font(.caption)
-                    .foregroundColor(.blue)
-            } else {
-                Text(value)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-        }
+        ThemedDetailRow(label: label, value: value, isURL: isURL)
     }
 }
 
@@ -417,38 +504,28 @@ struct CorrespondenceRowView: View {
     let correspondence: Correspondence
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             HStack {
                 Text(correspondence.subject)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(AppTheme.Fonts.subheadlineMedium)
                 
                 Spacer()
                 
                 Text(correspondence.date, style: .date)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.secondary)
             }
             
             HStack {
-                Text(correspondence.type.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.blue.opacity(0.2))
-                    .foregroundColor(.blue)
-                    .cornerRadius(4)
+                StatusBadge(correspondence.type.rawValue, color: AppTheme.Colors.primary)
                 
-                Text(correspondence.direction.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(correspondence.direction == .inbound ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
-                    .foregroundColor(correspondence.direction == .inbound ? .green : .orange)
-                    .cornerRadius(4)
+                StatusBadge(
+                    correspondence.direction.rawValue,
+                    color: correspondence.direction == .inbound ? AppTheme.Colors.inbound : AppTheme.Colors.outbound
+                )
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, AppTheme.Spacing.rowVerticalPadding)
     }
 }
 
@@ -456,45 +533,39 @@ struct ValuationRowView: View {
     let valuation: Valuation
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             HStack {
                 Text(valuation.methodology.rawValue)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(AppTheme.Fonts.subheadlineMedium)
                 
                 Spacer()
                 
-                Text("$\(valuation.calculatedValue, specifier: "%.0f")")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
+                Text(formatCurrency(valuation.calculatedValue))
+                    .font(AppTheme.Fonts.subheadlineMedium)
+                    .foregroundColor(AppTheme.Colors.money)
             }
             
             HStack {
                 Text("Multiple: \(valuation.multiple, specifier: "%.1f")x")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.secondary)
                 
                 Spacer()
                 
-                Text(valuation.confidenceLevel.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(confidenceColor.opacity(0.2))
-                    .foregroundColor(confidenceColor)
-                    .cornerRadius(4)
+                ConfidenceBadge(valuation.confidenceLevel)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, AppTheme.Spacing.rowVerticalPadding)
     }
     
-    private var confidenceColor: Color {
-        switch valuation.confidenceLevel {
-        case .low: return .red
-        case .medium: return .orange
-        case .high: return .green
-        case .veryHigh: return .blue
+    /// Formats currency with K/M suffixes for large numbers
+    private func formatCurrency(_ amount: Double) -> String {
+        if amount >= 1_000_000 {
+            return String(format: "$%.1fM", amount / 1_000_000)
+        } else if amount >= 1_000 {
+            return String(format: "$%.0fK", amount / 1_000)
+        } else {
+            return String(format: "$%.0f", amount)
         }
     }
 }

@@ -1,21 +1,23 @@
 //
-//  AddOwnerView.swift
+//  AddBrokerView.swift
 //  Business Eval
 //
-//  Created by Scott Campbell on 12/29/25.
+//  Created by Scott Campbell on 12/30/25.
 //
 
 import SwiftUI
 import SwiftData
 
-struct AddOwnerView: View {
+struct AddBrokerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     
     @State private var name = ""
     @State private var email = ""
     @State private var phone = ""
-    @State private var title = ""
+    @State private var company = ""
+    @State private var license = ""
+    @State private var commission = ""
     @State private var notes = ""
     @State private var contactPreference: ContactPreference = .email
     
@@ -27,8 +29,10 @@ struct AddOwnerView: View {
                     TextField("Name", text: $name)
                         .textInputAutocapitalization(.words)
                     
-                    TextField("Title", text: $title)
+                    TextField("Company", text: $company)
                         .textInputAutocapitalization(.words)
+                    
+                    TextField("License Number", text: $license)
                 }
                 
                 // Contact Information Section
@@ -49,13 +53,27 @@ struct AddOwnerView: View {
                     .pickerStyle(SegmentedPickerStyle())
                 }
                 
+                // Commission Section
+                Section("Commission Information") {
+                    HStack {
+                        Text("Commission Rate")
+                        Spacer()
+                        TextField("0.0", text: $commission)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 80)
+                        Text("%")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 // Notes Section
                 Section("Notes") {
-                    TextField("Additional notes about this owner...", text: $notes, axis: .vertical)
+                    TextField("Additional notes about this broker...", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("Add Owner")
+            .navigationTitle("Add Broker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -66,7 +84,7 @@ struct AddOwnerView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        addOwner()
+                        addBroker()
                     }
                     .disabled(name.isEmpty)
                 }
@@ -74,23 +92,25 @@ struct AddOwnerView: View {
         }
     }
     
-    private func addOwner() {
-        let owner = Owner(
+    private func addBroker() {
+        let broker = Broker(
             name: name,
             email: email.isEmpty ? nil : email,
             phone: phone.isEmpty ? nil : phone,
-            title: title.isEmpty ? nil : title,
+            company: company.isEmpty ? nil : company,
+            license: license.isEmpty ? nil : license,
+            commission: Double(commission),
             notes: notes.isEmpty ? nil : notes
         )
-        owner.contactPreference = contactPreference
+        broker.contactPreference = contactPreference
         
-        modelContext.insert(owner)
+        modelContext.insert(broker)
         dismiss()
     }
 }
 
-struct EditOwnerView: View {
-    @Bindable var owner: Owner
+struct EditBrokerView: View {
+    @Bindable var broker: Broker
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -98,11 +118,13 @@ struct EditOwnerView: View {
             Form {
                 // Basic Information Section
                 Section("Basic Information") {
-                    TextField("Name", text: $owner.name)
+                    TextField("Name", text: $broker.name)
                         .textInputAutocapitalization(.words)
                     
-                    TextField("Title", text: binding(for: owner.title))
+                    TextField("Company", text: companyBinding)
                         .textInputAutocapitalization(.words)
+                    
+                    TextField("License Number", text: licenseBinding)
                 }
                 
                 // Contact Information Section
@@ -115,7 +137,7 @@ struct EditOwnerView: View {
                     TextField("Phone", text: phoneBinding)
                         .keyboardType(.phonePad)
                     
-                    Picker("Contact Preference", selection: $owner.contactPreference) {
+                    Picker("Contact Preference", selection: $broker.contactPreference) {
                         ForEach(ContactPreference.allCases, id: \.self) { preference in
                             Text(preference.rawValue).tag(preference)
                         }
@@ -123,13 +145,27 @@ struct EditOwnerView: View {
                     .pickerStyle(SegmentedPickerStyle())
                 }
                 
+                // Commission Section
+                Section("Commission Information") {
+                    HStack {
+                        Text("Commission Rate")
+                        Spacer()
+                        TextField("0.0", text: commissionBinding)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 80)
+                        Text("%")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 // Notes Section
                 Section("Notes") {
-                    TextField("Additional notes about this owner...", text: binding(for: owner.notes), axis: .vertical)
+                    TextField("Additional notes about this broker...", text: notesBinding, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("Edit Owner")
+            .navigationTitle("Edit Broker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -140,10 +176,10 @@ struct EditOwnerView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        owner.updatedAt = Date()
+                        broker.updatedAt = Date()
                         dismiss()
                     }
-                    .disabled(owner.name.isEmpty)
+                    .disabled(broker.name.isEmpty)
                 }
             }
         }
@@ -152,9 +188,9 @@ struct EditOwnerView: View {
     // Independent binding for email
     private var emailBinding: Binding<String> {
         Binding(
-            get: { owner.email ?? "" },
+            get: { broker.email ?? "" },
             set: { newValue in
-                owner.email = newValue.isEmpty ? nil : newValue
+                broker.email = newValue.isEmpty ? nil : newValue
             }
         )
     }
@@ -162,47 +198,55 @@ struct EditOwnerView: View {
     // Independent binding for phone
     private var phoneBinding: Binding<String> {
         Binding(
-            get: { owner.phone ?? "" },
+            get: { broker.phone ?? "" },
             set: { newValue in
-                owner.phone = newValue.isEmpty ? nil : newValue
+                broker.phone = newValue.isEmpty ? nil : newValue
             }
         )
     }
     
-    // Helper function to create bindings for optional strings
-    private func binding(for optional: String?) -> Binding<String> {
+    // Independent binding for company
+    private var companyBinding: Binding<String> {
         Binding(
-            get: { optional ?? "" },
+            get: { broker.company ?? "" },
             set: { newValue in
-                if newValue.isEmpty {
-                    // Handle setting to nil based on which property this is
-                    if optional == owner.email {
-                        owner.email = nil
-                    } else if optional == owner.phone {
-                        owner.phone = nil
-                    } else if optional == owner.title {
-                        owner.title = nil
-                    } else if optional == owner.notes {
-                        owner.notes = nil
-                    }
-                } else {
-                    // Handle setting the value
-                    if optional == owner.email {
-                        owner.email = newValue
-                    } else if optional == owner.phone {
-                        owner.phone = newValue
-                    } else if optional == owner.title {
-                        owner.title = newValue
-                    } else if optional == owner.notes {
-                        owner.notes = newValue
-                    }
-                }
+                broker.company = newValue.isEmpty ? nil : newValue
+            }
+        )
+    }
+    
+    // Independent binding for license
+    private var licenseBinding: Binding<String> {
+        Binding(
+            get: { broker.license ?? "" },
+            set: { newValue in
+                broker.license = newValue.isEmpty ? nil : newValue
+            }
+        )
+    }
+    
+    // Independent binding for commission
+    private var commissionBinding: Binding<String> {
+        Binding(
+            get: { broker.commission != nil ? String(broker.commission!) : "" },
+            set: { newValue in
+                broker.commission = newValue.isEmpty ? nil : Double(newValue)
+            }
+        )
+    }
+    
+    // Independent binding for notes
+    private var notesBinding: Binding<String> {
+        Binding(
+            get: { broker.notes ?? "" },
+            set: { newValue in
+                broker.notes = newValue.isEmpty ? nil : newValue
             }
         )
     }
 }
 
 #Preview {
-    AddOwnerView()
-        .modelContainer(for: Owner.self, inMemory: true)
+    AddBrokerView()
+        .modelContainer(for: Broker.self, inMemory: true)
 }

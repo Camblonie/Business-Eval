@@ -29,6 +29,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Owners", systemImage: "person.2")
                 }
+            
+            BrokersView()
+                .tabItem {
+                    Label("Brokers", systemImage: "briefcase")
+                }
         }
     }
 }

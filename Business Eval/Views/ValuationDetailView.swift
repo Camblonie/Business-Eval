@@ -13,25 +13,31 @@ struct ValuationDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sectionSpacing) {
                 // Business Information
                 businessSection
+                    .fadeIn(delay: 0)
                 
                 // Valuation Summary
                 valuationSummarySection
+                    .fadeIn(delay: 0.05)
                 
                 // Methodology Details
                 methodologySection
+                    .fadeIn(delay: 0.1)
                 
                 // Financial Metrics
                 financialMetricsSection
+                    .fadeIn(delay: 0.15)
                 
                 // Confidence Analysis
                 confidenceSection
+                    .fadeIn(delay: 0.2)
                 
                 // Notes
                 if let notes = valuation.notes, !notes.isEmpty {
                     notesSection(notes: notes)
+                        .fadeIn(delay: 0.25)
                 }
             }
             .padding()
@@ -48,130 +54,132 @@ struct ValuationDetailView: View {
     }
     
     private var businessSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Business")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
             if let business = valuation.business {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                     Text(business.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(AppTheme.Fonts.subheadlineMedium)
                     
                     Text(business.industry)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.secondary)
                     
                     HStack {
                         Text("Asking Price:")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
                         
-                        Text("$\(business.askingPrice, specifier: "%.0f")")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.green)
+                        Text(formatCurrency(business.askingPrice))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(AppTheme.Colors.money)
                         
                         Spacer()
                         
                         let difference = valuation.calculatedValue - business.askingPrice
                         let percentageDifference = (difference / business.askingPrice) * 100
                         
-                        Text("\(difference >= 0 ? "+" : "")$\(difference, specifier: "%.0f") (\(String(format: "%.1f", percentageDifference))%)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(difference >= 0 ? .green : .red)
+                        Text("\(difference >= 0 ? "+" : "")\(formatCurrency(abs(difference))) (\(String(format: "%.1f", percentageDifference))%)")
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(difference >= 0 ? AppTheme.Colors.success : AppTheme.Colors.destructive)
                     }
                 }
             } else {
                 Text("Business information not available")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
+    }
+    
+    /// Formats currency with K/M suffixes for large numbers
+    private func formatCurrency(_ amount: Double) -> String {
+        if amount >= 1_000_000 {
+            return String(format: "$%.1fM", amount / 1_000_000)
+        } else if amount >= 1_000 {
+            return String(format: "$%.0fK", amount / 1_000)
+        } else {
+            return String(format: "$%.0f", amount)
+        }
     }
     
     private var valuationSummarySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Valuation Summary")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(spacing: 8) {
-                HStack {
-                    Text("Calculated Value:")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+            // Key metric with visual emphasis
+            HStack {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text("Calculated Value")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.secondary)
                     
-                    Spacer()
-                    
-                    Text("$\(valuation.calculatedValue, specifier: "%.0f")")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                    Text(formatCurrency(valuation.calculatedValue))
+                        .font(AppTheme.Fonts.largeTitle)
+                        .foregroundColor(AppTheme.Colors.money)
                 }
                 
-                HStack {
-                    Text("Multiple:")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Text("\(valuation.multiple, specifier: "%.2f")x")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
+                Spacer()
                 
-                HStack {
-                    Text("Date:")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                // Confidence indicator
+                VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                    Text("Confidence")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.secondary)
                     
-                    Spacer()
-                    
-                    Text(valuation.createdAt, style: .date)
-                        .font(.subheadline)
+                    ConfidenceBadge(valuation.confidenceLevel)
                 }
             }
+            
+            ThemedDivider()
+            
+            // Secondary metrics in grid
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.sm) {
+                ThemedMetricCard(
+                    title: "Multiple",
+                    value: String(format: "%.2fx", valuation.multiple),
+                    icon: "multiply.circle.fill",
+                    color: AppTheme.Colors.primary
+                )
+                
+                ThemedMetricCard(
+                    title: "Date",
+                    value: valuation.createdAt.formatted(date: .abbreviated, time: .omitted),
+                    icon: "calendar",
+                    color: AppTheme.Colors.info
+                )
+            }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .elevatedCardStyle()
     }
     
     private var methodologySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Methodology")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                 Text(valuation.methodology.rawValue)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(AppTheme.Fonts.subheadlineMedium)
                 
                 Text(methodologyDescription)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.secondary)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var financialMetricsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Financial Metrics")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(spacing: 8) {
+            VStack(spacing: AppTheme.Spacing.sm) {
                 if let revenueMultiple = valuation.revenueMultiple {
                     ValuationMetricRow(label: "Revenue Multiple", value: "\(String(format: "%.2f", revenueMultiple))x")
                 }
@@ -191,31 +199,21 @@ struct ValuationDetailView: View {
                 if valuation.revenueMultiple == nil && valuation.profitMultiple == nil && 
                    valuation.ebitdaMultiple == nil && valuation.sdeMultiple == nil {
                     Text("No detailed financial metrics recorded")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.secondary)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var confidenceSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Confidence Level")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
             HStack {
-                Text(valuation.confidenceLevel.rawValue)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(confidenceColor.opacity(0.2))
-                    .foregroundColor(confidenceColor)
-                    .cornerRadius(8)
+                ConfidenceBadge(valuation.confidenceLevel)
                 
                 Spacer()
                 
@@ -223,26 +221,21 @@ struct ValuationDetailView: View {
             }
             
             Text(confidenceDescription)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(AppTheme.Fonts.caption)
+                .foregroundColor(AppTheme.Colors.secondary)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private func notesSection(notes: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Notes")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
             Text(notes)
-                .font(.body)
+                .font(AppTheme.Fonts.body)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     // Computed properties
@@ -278,18 +271,6 @@ struct ValuationDetailView: View {
         }
     }
     
-    private var confidenceColor: Color {
-        switch valuation.confidenceLevel {
-        case .low:
-            return .red
-        case .medium:
-            return .orange
-        case .high:
-            return .green
-        case .veryHigh:
-            return .blue
-        }
-    }
 }
 
 struct ValuationMetricRow: View {
@@ -299,14 +280,13 @@ struct ValuationMetricRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(AppTheme.Fonts.caption)
+                .foregroundColor(AppTheme.Colors.secondary)
             
             Spacer()
             
             Text(value)
-                .font(.caption)
-                .fontWeight(.medium)
+                .font(AppTheme.Fonts.captionMedium)
         }
     }
 }
@@ -315,30 +295,21 @@ struct ConfidenceIndicator: View {
     let level: ConfidenceLevel
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: AppTheme.Spacing.xs) {
             ForEach(1...4, id: \.self) { index in
                 Circle()
-                    .fill(index <= confidenceLevel ? confidenceColor : Color.gray.opacity(0.3))
+                    .fill(index <= confidenceLevelValue ? AppTheme.Colors.confidenceColor(for: level) : Color.gray.opacity(0.3))
                     .frame(width: 8, height: 8)
             }
         }
     }
     
-    private var confidenceLevel: Int {
+    private var confidenceLevelValue: Int {
         switch level {
         case .low: return 1
         case .medium: return 2
         case .high: return 3
         case .veryHigh: return 4
-        }
-    }
-    
-    private var confidenceColor: Color {
-        switch level {
-        case .low: return .red
-        case .medium: return .orange
-        case .high: return .green
-        case .veryHigh: return .blue
         }
     }
 }

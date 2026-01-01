@@ -9,14 +9,17 @@ import SwiftUI
 import SwiftData
 
 struct AddCorrespondenceView: View {
-    let business: Business
+    let business: Business?
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Business.name, order: .forward) private var businesses: [Business]
     
     @State private var subject = ""
     @State private var content = ""
     @State private var type: CorrespondenceType = .email
     @State private var direction: CorrespondenceDirection = .outbound
+    @State private var selectedBusiness: Business?
+    @State private var correspondenceDate = Date()
     
     private var isFormValid: Bool {
         !subject.isEmpty && !content.isEmpty
@@ -39,6 +42,8 @@ struct AddCorrespondenceView: View {
                             Text(direction.rawValue).tag(direction)
                         }
                     }
+                    
+                    DatePicker("Date & Time", selection: $correspondenceDate, displayedComponents: [.date, .hourAndMinute])
                 }
                 
                 Section("Content") {
@@ -47,8 +52,17 @@ struct AddCorrespondenceView: View {
                 }
                 
                 Section("Business") {
-                    Text(business.name)
-                        .foregroundColor(.secondary)
+                    if let business = business {
+                        Text(business.name)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Picker("Select Business", selection: $selectedBusiness) {
+                            Text("None").tag(nil as Business?)
+                            ForEach(businesses, id: \.id) { business in
+                                Text(business.name).tag(business as Business?)
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle("Add Correspondence")
@@ -72,12 +86,15 @@ struct AddCorrespondenceView: View {
     }
     
     private func addCorrespondence() {
+        let targetBusiness = business ?? selectedBusiness
+        
         let correspondence = Correspondence(
             subject: subject,
             content: content,
             type: type,
             direction: direction,
-            business: business
+            business: targetBusiness,
+            date: correspondenceDate
         )
         
         modelContext.insert(correspondence)

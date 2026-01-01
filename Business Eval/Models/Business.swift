@@ -21,6 +21,7 @@ final class Business {
     var yearsEstablished: Int
     var businessDescription: String
     var listingURL: String?
+    var notes: String?
     var status: BusinessStatus
     var createdAt: Date
     var updatedAt: Date
@@ -29,11 +30,18 @@ final class Business {
     var correspondence: [Correspondence] = []
     var valuations: [Valuation] = []
     var owner: Owner?
+    var broker: Broker?
     var images: [BusinessImage] = []
     
-    init(name: String, industry: String, location: String, askingPrice: Double, 
-         annualRevenue: Double, annualProfit: Double, numberOfEmployees: Int, 
-         yearsEstablished: Int, businessDescription: String) {
+    init(name: String, 
+         industry: String = "", 
+         location: String = "", 
+         askingPrice: Double = 0, 
+         annualRevenue: Double = 0, 
+         annualProfit: Double = 0, 
+         numberOfEmployees: Int = 0, 
+         yearsEstablished: Int = 0, 
+         businessDescription: String = "") {
         self.id = UUID()
         self.name = name
         self.industry = industry

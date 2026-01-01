@@ -23,24 +23,19 @@ struct AddBusinessView: View {
     @State private var businessDescription = ""
     @State private var listingURL = ""
     
-    private var isFormValid: Bool {
-        !name.isEmpty && !industry.isEmpty && !location.isEmpty && 
-        Double(askingPrice) != nil && Double(annualRevenue) != nil &&
-        Int(numberOfEmployees) != nil && Int(yearsEstablished) != nil
-    }
-    
+        
     var body: some View {
         NavigationView {
             Form {
                 Section("Basic Information") {
-                    TextField("Business Name", text: $name)
-                    TextField("Industry", text: $industry)
-                    TextField("Location", text: $location)
-                    TextField("Business Description", text: $businessDescription, axis: .vertical)
+                    TextField("Business Name *", text: $name)
+                    TextField("Industry (optional)", text: $industry)
+                    TextField("Location (optional)", text: $location)
+                    TextField("Business Description (optional)", text: $businessDescription, axis: .vertical)
                         .lineLimit(3...6)
                 }
                 
-                Section("Financial Information") {
+                Section("Financial Information (optional)") {
                     TextField("Asking Price", text: $askingPrice)
                         .keyboardType(.decimalPad)
                     TextField("Annual Revenue", text: $annualRevenue)
@@ -49,12 +44,12 @@ struct AddBusinessView: View {
                         .keyboardType(.decimalPad)
                 }
                 
-                Section("Business Details") {
+                Section("Business Details (optional)") {
                     TextField("Number of Employees", text: $numberOfEmployees)
                         .keyboardType(.numberPad)
                     TextField("Years Established", text: $yearsEstablished)
                         .keyboardType(.numberPad)
-                    TextField("Listing URL (optional)", text: $listingURL)
+                    TextField("Listing URL", text: $listingURL)
                         .keyboardType(.URL)
                 }
             }
@@ -72,7 +67,6 @@ struct AddBusinessView: View {
                         addBusiness()
                         dismiss()
                     }
-                    .disabled(!isFormValid)
                 }
             }
         }
@@ -81,14 +75,14 @@ struct AddBusinessView: View {
     private func addBusiness() {
         let business = Business(
             name: name,
-            industry: industry,
-            location: location,
+            industry: industry.isEmpty ? "" : industry,
+            location: location.isEmpty ? "" : location,
             askingPrice: Double(askingPrice) ?? 0,
             annualRevenue: Double(annualRevenue) ?? 0,
             annualProfit: Double(annualProfit) ?? 0,
             numberOfEmployees: Int(numberOfEmployees) ?? 0,
             yearsEstablished: Int(yearsEstablished) ?? 0,
-            businessDescription: businessDescription
+            businessDescription: businessDescription.isEmpty ? "" : businessDescription
         )
         
         if !listingURL.isEmpty {

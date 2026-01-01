@@ -76,19 +76,16 @@ struct ValuationsView: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Search and Filters
-                VStack(spacing: 12) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     HStack {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.Colors.secondary)
                         TextField("Search valuations...", text: $searchText)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                    .searchBarStyle()
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: AppTheme.Spacing.md) {
                             // Methodology Filter
                             Menu {
                                 Button("All Methodologies") {
@@ -141,14 +138,15 @@ struct ValuationsView: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemBackground))
+                .background(AppTheme.Colors.background)
                 
                 // Valuations List
                 List {
-                    ForEach(filteredAndSortedValuations) { valuation in
+                    ForEach(Array(filteredAndSortedValuations.enumerated()), id: \.element.id) { index, valuation in
                         NavigationLink(destination: ValuationDetailView(valuation: valuation)) {
                             ValuationRowView(valuation: valuation)
                         }
+                        .staggeredAppearance(index: index)
                     }
                 }
             }
@@ -166,18 +164,6 @@ struct ValuationsView: View {
         }
     }
     
-    private func confidenceColor(for valuation: Valuation) -> Color {
-        switch valuation.confidenceLevel {
-        case .low:
-            return .red
-        case .medium:
-            return .orange
-        case .high:
-            return .green
-        case .veryHigh:
-            return .blue
-        }
-    }
 }
 
 struct ValuationFilterChip: View {
@@ -186,12 +172,12 @@ struct ValuationFilterChip: View {
     
     var body: some View {
         Text(title)
-            .font(.caption)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(isSelected ? Color.blue : Color(.systemGray6))
+            .font(AppTheme.Fonts.caption)
+            .padding(.horizontal, AppTheme.Badge.largeHorizontalPadding)
+            .padding(.vertical, AppTheme.Badge.largeVerticalPadding)
+            .background(isSelected ? AppTheme.Colors.primary : AppTheme.Colors.cardBackground)
             .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(16)
+            .cornerRadius(AppTheme.CornerRadius.pill)
     }
 }
 

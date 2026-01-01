@@ -22,11 +22,11 @@ final class Correspondence {
     var business: Business?
     
     init(subject: String, content: String, type: CorrespondenceType, 
-         direction: CorrespondenceDirection, business: Business? = nil) {
+         direction: CorrespondenceDirection, business: Business? = nil, date: Date = Date()) {
         self.id = UUID()
         self.subject = subject
         self.content = content
-        self.date = Date()
+        self.date = date
         self.type = type
         self.direction = direction
         self.business = business

@@ -20,23 +20,28 @@ struct OwnerDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sectionSpacing) {
                 // Owner Information
                 ownerInfoSection
+                    .fadeIn(delay: 0)
                 
                 // Contact Information
                 contactSection
+                    .fadeIn(delay: 0.05)
                 
                 // Businesses
                 businessesSection
+                    .fadeIn(delay: 0.1)
                 
                 // Notes
                 if let notes = owner.notes, !notes.isEmpty {
                     notesSection
+                        .fadeIn(delay: 0.15)
                 }
                 
                 // Quick Actions
                 quickActionsSection
+                    .fadeIn(delay: 0.2)
             }
             .padding()
         }
@@ -71,66 +76,89 @@ struct OwnerDetailView: View {
     }
     
     private var ownerInfoSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Owner Information")
-                .font(.headline)
-                .fontWeight(.bold)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                if let title = owner.title {
-                    DetailRow(label: "Title", value: title)
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            // Owner name as hero element
+            HStack {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(owner.name)
+                        .font(AppTheme.Fonts.title2)
+                        .foregroundColor(.white)
+                    
+                    if let title = owner.title {
+                        Text(title)
+                            .font(AppTheme.Fonts.subheadline)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
                 }
                 
-                DetailRow(label: "Contact Preference", value: owner.contactPreference.rawValue)
+                Spacer()
+                
+                // Business count indicator
+                VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                    Text("\(owner.businesses.count)")
+                        .font(AppTheme.Fonts.title)
+                        .foregroundColor(.white)
+                    
+                    Text("business\(owner.businesses.count == 1 ? "" : "es")")
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                }
             }
+            
+            // Contact preference badge
+            Text(owner.contactPreference.rawValue)
+                .font(AppTheme.Fonts.captionMedium)
+                .padding(.horizontal, AppTheme.Badge.horizontalPadding)
+                .padding(.vertical, AppTheme.Badge.verticalPadding)
+                .background(Color.white.opacity(0.2))
+                .foregroundColor(.white)
+                .cornerRadius(AppTheme.CornerRadius.medium)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .heroCardStyle()
     }
     
     private var contactSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Contact Information")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                 if let email = owner.email {
-                    DetailRow(label: "Email", value: email)
+                    ThemedDetailRow(label: "Email", value: email, icon: "envelope")
+                    
+                    if owner.phone != nil {
+                        ThemedDivider()
+                    }
                 }
                 
                 if let phone = owner.phone {
-                    DetailRow(label: "Phone", value: phone)
+                    ThemedDetailRow(label: "Phone", value: phone, icon: "phone")
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var businessesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 Text("Associated Businesses")
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(AppTheme.Fonts.headline)
                 
                 Spacer()
                 
                 Button(action: { showingBusinessSelector = true }) {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppTheme.Colors.primary)
                         .font(.title2)
                 }
             }
             
             if owner.businesses.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     Text("No businesses associated")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(AppTheme.Fonts.subheadline)
+                        .foregroundColor(AppTheme.Colors.secondary)
                     
                     Button("Add Business") {
                         showingBusinessSelector = true
@@ -138,9 +166,9 @@ struct OwnerDetailView: View {
                     .buttonStyle(.borderedProminent)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
+                .padding(.vertical, AppTheme.Spacing.xl)
             } else {
-                VStack(spacing: 8) {
+                VStack(spacing: AppTheme.Spacing.sm) {
                     ForEach(owner.businesses) { business in
                         BusinessAssociationRow(
                             business: business,
@@ -150,67 +178,59 @@ struct OwnerDetailView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
         .sheet(isPresented: $showingBusinessSelector) {
             BusinessSelectorView(owner: owner)
         }
     }
     
     private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Notes")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
             Text(owner.notes!)
-                .font(.body)
+                .font(AppTheme.Fonts.body)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Quick Actions")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(AppTheme.Fonts.headline)
             
-            VStack(spacing: 12) {
+            VStack(spacing: AppTheme.Spacing.md) {
                 if let email = owner.email {
-                    ActionButton(
+                    ThemedActionButton(
                         title: "Send Email",
                         icon: "envelope",
-                        color: .blue
+                        color: AppTheme.Colors.primary
                     ) {
                         sendEmail(to: email)
                     }
                 }
                 
                 if let phone = owner.phone {
-                    ActionButton(
+                    ThemedActionButton(
                         title: "Make Call",
                         icon: "phone",
-                        color: .green
+                        color: AppTheme.Colors.success
                     ) {
                         makeCall(to: phone)
                     }
                 }
                 
-                ActionButton(
+                ThemedActionButton(
                     title: "Edit Owner",
                     icon: "pencil",
-                    color: .orange
+                    color: AppTheme.Colors.warning
                 ) {
                     showingEditOwner = true
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cardStyle()
     }
     
     // Helper functions for actions
@@ -236,32 +256,41 @@ struct BusinessAssociationRow: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(business.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(AppTheme.Fonts.subheadlineMedium)
                 
                 Text(business.industry)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.secondary)
                 
-                Text("$\(String(format: "%.0f", business.askingPrice))")
-                    .font(.caption)
-                    .foregroundColor(.green)
+                Text(formatAskingPrice(business.askingPrice))
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.money)
             }
             
             Spacer()
             
             Button(action: onRemove) {
                 Image(systemName: "minus.circle.fill")
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.destructive)
                     .font(.title3)
             }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
+        .padding(.vertical, AppTheme.Spacing.sm)
+        .padding(.horizontal, AppTheme.Spacing.md)
+        .background(AppTheme.Colors.background)
+        .cornerRadius(AppTheme.CornerRadius.medium)
+    }
+    
+    private func formatAskingPrice(_ price: Double) -> String {
+        if price >= 1_000_000 {
+            return String(format: "$%.1fM", price / 1_000_000)
+        } else if price >= 1_000 {
+            return String(format: "$%.0fK", price / 1_000)
+        } else {
+            return String(format: "$%.0f", price)
+        }
     }
 }
 
@@ -280,7 +309,7 @@ struct BusinessSelectorView: View {
             List {
                 if availableBusinesses.isEmpty {
                     Text("No available businesses to add")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppTheme.Colors.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
                 } else {
@@ -317,59 +346,42 @@ struct BusinessSelectionRow: View {
     var body: some View {
         Button(action: onSelect) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text(business.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(AppTheme.Fonts.subheadlineMedium)
                     
                     Text(business.industry)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.secondary)
                     
-                    Text("$\(String(format: "%.0f", business.askingPrice))")
-                        .font(.caption)
-                        .foregroundColor(.green)
+                    Text(formatAskingPrice(business.askingPrice))
+                        .font(AppTheme.Fonts.caption)
+                        .foregroundColor(AppTheme.Colors.money)
                 }
                 
                 Spacer()
                 
                 Image(systemName: "plus.circle")
-                    .foregroundColor(.blue)
+                    .foregroundColor(AppTheme.Colors.primary)
                     .font(.title3)
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, AppTheme.Spacing.xs)
         }
         .buttonStyle(PlainButtonStyle())
     }
-}
-
-struct ActionButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let action: () -> Void
     
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                
-                Text(title)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(8)
+    private func formatAskingPrice(_ price: Double) -> String {
+        if price >= 1_000_000 {
+            return String(format: "$%.1fM", price / 1_000_000)
+        } else if price >= 1_000 {
+            return String(format: "$%.0fK", price / 1_000)
+        } else {
+            return String(format: "$%.0f", price)
         }
     }
 }
+
+// ActionButton is now replaced by ThemedActionButton from Theme.swift
 
 #Preview {
     let owner = Owner(
