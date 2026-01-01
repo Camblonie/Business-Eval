@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct ValuationDetailView: View {
-    let valuation: Valuation
+    @Bindable var valuation: Valuation
     @Environment(\.dismiss) private var dismiss
+    @State private var showingEditValuation = false
     
     var body: some View {
         ScrollView {
@@ -46,10 +47,19 @@ struct ValuationDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    dismiss()
+                HStack {
+                    Button(action: { showingEditValuation = true }) {
+                        Image(systemName: "pencil.circle")
+                    }
+                    
+                    Button("Done") {
+                        dismiss()
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $showingEditValuation) {
+            EditValuationView(valuation: valuation)
         }
     }
     

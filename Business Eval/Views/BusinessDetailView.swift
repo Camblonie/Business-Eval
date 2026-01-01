@@ -529,46 +529,7 @@ struct CorrespondenceRowView: View {
     }
 }
 
-struct ValuationRowView: View {
-    let valuation: Valuation
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-            HStack {
-                Text(valuation.methodology.rawValue)
-                    .font(AppTheme.Fonts.subheadlineMedium)
-                
-                Spacer()
-                
-                Text(formatCurrency(valuation.calculatedValue))
-                    .font(AppTheme.Fonts.subheadlineMedium)
-                    .foregroundColor(AppTheme.Colors.money)
-            }
-            
-            HStack {
-                Text("Multiple: \(valuation.multiple, specifier: "%.1f")x")
-                    .font(AppTheme.Fonts.caption)
-                    .foregroundColor(AppTheme.Colors.secondary)
-                
-                Spacer()
-                
-                ConfidenceBadge(valuation.confidenceLevel)
-            }
-        }
-        .padding(.vertical, AppTheme.Spacing.rowVerticalPadding)
-    }
-    
-    /// Formats currency with K/M suffixes for large numbers
-    private func formatCurrency(_ amount: Double) -> String {
-        if amount >= 1_000_000 {
-            return String(format: "$%.1fM", amount / 1_000_000)
-        } else if amount >= 1_000 {
-            return String(format: "$%.0fK", amount / 1_000)
-        } else {
-            return String(format: "$%.0f", amount)
-        }
-    }
-}
+// ValuationRowView is defined in ValuationsView.swift
 
 #Preview {
     let business = Business(
