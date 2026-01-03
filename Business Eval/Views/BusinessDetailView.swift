@@ -274,6 +274,111 @@ struct BusinessDetailView: View {
                     )
                 }
             }
+            
+            // Loan/Financing Section
+            if business.askingPrice > 0 {
+                ThemedDivider()
+                
+                Text("Financing Details")
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                // Loan input parameters display
+                VStack(spacing: AppTheme.Spacing.xs) {
+                    HStack {
+                        Text("Down Payment")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text("\(Int(business.downPaymentPercent))% (\(formatCurrency(business.downPaymentAmount)))")
+                            .font(AppTheme.Fonts.captionMedium)
+                    }
+                    
+                    HStack {
+                        Text("Loan Amount")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text(formatCurrency(business.loanAmount))
+                            .font(AppTheme.Fonts.captionMedium)
+                    }
+                    
+                    HStack {
+                        Text("Interest Rate")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text(String(format: "%.2f%%", business.loanInterestRate))
+                            .font(AppTheme.Fonts.captionMedium)
+                    }
+                    
+                    HStack {
+                        Text("Loan Term")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text("\(business.loanTermYears) years")
+                            .font(AppTheme.Fonts.captionMedium)
+                    }
+                }
+                
+                // Annual Payment Card - prominent display
+                if business.annualLoanPayment > 0 {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Annual Payment")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(formatCurrency(business.annualLoanPayment))
+                                .font(AppTheme.Fonts.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(AppTheme.Colors.warning)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Monthly Payment")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(formatCurrency(business.monthlyLoanPayment))
+                                .font(AppTheme.Fonts.headline)
+                                .foregroundColor(AppTheme.Colors.warning)
+                        }
+                    }
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.warning.opacity(0.1))
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+                    
+                    // Cash flow comparison
+                    if business.annualProfit > 0 {
+                        let cashFlowAfterDebt = business.annualProfit - business.annualLoanPayment
+                        let debtServiceCoverage = business.annualProfit / business.annualLoanPayment
+                        
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Cash Flow After Debt")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                                Text(formatCurrency(cashFlowAfterDebt))
+                                    .font(AppTheme.Fonts.captionMedium)
+                                    .foregroundColor(cashFlowAfterDebt >= 0 ? AppTheme.Colors.success : AppTheme.Colors.destructive)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("Debt Service Coverage")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                                Text(String(format: "%.2fx", debtServiceCoverage))
+                                    .font(AppTheme.Fonts.captionMedium)
+                                    .foregroundColor(debtServiceCoverage >= 1.25 ? AppTheme.Colors.success : (debtServiceCoverage >= 1.0 ? AppTheme.Colors.warning : AppTheme.Colors.destructive))
+                            }
+                        }
+                    }
+                }
+            }
         }
         .elevatedCardStyle()
     }
