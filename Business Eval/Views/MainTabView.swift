@@ -34,6 +34,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Brokers", systemImage: "briefcase")
                 }
+            
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
+                }
         }
     }
 }
