@@ -24,6 +24,7 @@ struct CorrespondenceBusinessSelectorView: View {
         }
         return businesses.filter { business in
             business.name.localizedCaseInsensitiveContains(searchText) ||
+            (business.teaser?.localizedCaseInsensitiveContains(searchText) ?? false) ||
             business.industry.localizedCaseInsensitiveContains(searchText) ||
             business.location.localizedCaseInsensitiveContains(searchText)
         }

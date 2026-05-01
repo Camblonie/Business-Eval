@@ -843,13 +843,19 @@ struct AppAnimations {
     static let springResponse: Double = 0.4
     static let springDamping: Double = 0.7
     
+    // Fast spring animation for better performance
+    static let fastSpringResponse: Double = 0.3
+    static let fastSpringDamping: Double = 0.8
+    
     // Stagger delay for list items
     static let staggerDelay: Double = 0.05
+    static let quickStaggerDelay: Double = 0.015
     
     // Standard animations
     static let defaultAnimation = Animation.easeInOut(duration: normal)
     static let quickAnimation = Animation.easeOut(duration: fast)
     static let springAnimation = Animation.spring(response: springResponse, dampingFraction: springDamping)
+    static let fastSpringAnimation = Animation.spring(response: fastSpringResponse, dampingFraction: fastSpringDamping)
     
     // Interactive spring for button presses
     static let buttonPress = Animation.spring(response: 0.3, dampingFraction: 0.6)
@@ -888,14 +894,21 @@ extension View {
 
 // MARK: - Staggered List Animation Modifier
 /// Animates list items with staggered delay based on index
+enum StaggeredSpeed {
+    case normal
+    case fast
+}
+
 struct StaggeredAppearanceModifier: ViewModifier {
     @State private var isVisible = false
     let index: Int
     let baseDelay: Double
+    let speed: StaggeredSpeed
     
-    init(index: Int, baseDelay: Double = 0) {
+    init(index: Int, baseDelay: Double = 0, speed: StaggeredSpeed = .fast) {
         self.index = index
         self.baseDelay = baseDelay
+        self.speed = speed
     }
     
     func body(content: Content) -> some View {
@@ -904,8 +917,10 @@ struct StaggeredAppearanceModifier: ViewModifier {
             .offset(y: isVisible ? 0 : 15)
             .scaleEffect(isVisible ? 1 : 0.95)
             .onAppear {
-                let delay = baseDelay + (Double(index) * AppAnimations.staggerDelay)
-                withAnimation(AppAnimations.springAnimation.delay(delay)) {
+                let staggerDelay = speed == .fast ? AppAnimations.quickStaggerDelay : AppAnimations.staggerDelay
+                let animation = speed == .fast ? AppAnimations.fastSpringAnimation : AppAnimations.springAnimation
+                let delay = baseDelay + (Double(index) * staggerDelay)
+                withAnimation(animation.delay(delay)) {
                     isVisible = true
                 }
             }
@@ -914,8 +929,12 @@ struct StaggeredAppearanceModifier: ViewModifier {
 
 extension View {
     /// Applies staggered appearance animation for list items
-    func staggeredAppearance(index: Int, baseDelay: Double = 0) -> some View {
-        modifier(StaggeredAppearanceModifier(index: index, baseDelay: baseDelay))
+    /// - Parameters:
+    ///   - index: Row index for staggered delay calculation
+    ///   - baseDelay: Additional base delay before stagger starts
+    ///   - speed: Animation speed (.fast for better performance, .normal for original timing)
+    func staggeredAppearance(index: Int, baseDelay: Double = 0, speed: StaggeredSpeed = .fast) -> some View {
+        modifier(StaggeredAppearanceModifier(index: index, baseDelay: baseDelay, speed: speed))
     }
 }
 

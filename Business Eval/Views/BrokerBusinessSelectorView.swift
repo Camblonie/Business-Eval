@@ -24,6 +24,7 @@ struct BrokerBusinessSelectorView: View {
         } else {
             return availableBusinesses.filter { business in
                 business.name.localizedCaseInsensitiveContains(searchText) ||
+                (business.teaser?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 business.industry.localizedCaseInsensitiveContains(searchText) ||
                 business.location.localizedCaseInsensitiveContains(searchText)
             }
@@ -111,7 +112,7 @@ struct BrokerBusinessSelectorView: View {
     
     private func associateBusiness(_ business: Business) {
         broker.businesses.append(business)
-        business.broker = broker
+        business.brokers.append(broker)
         
         do {
             try modelContext.save()

@@ -53,13 +53,13 @@ struct AddCorrespondenceView: View {
                 
                 Section("Business") {
                     if let business = business {
-                        Text(business.name)
+                        Text(business.displayName)
                             .foregroundColor(.secondary)
                     } else {
                         Picker("Select Business", selection: $selectedBusiness) {
                             Text("None").tag(nil as Business?)
                             ForEach(businesses, id: \.id) { business in
-                                Text(business.name).tag(business as Business?)
+                                Text(business.displayName).tag(business as Business?)
                             }
                         }
                     }

@@ -18,6 +18,11 @@ struct OwnerDetailView: View {
     
     @Query(sort: \Business.name, order: .forward) private var allBusinesses: [Business]
     
+    // Computes accurate business count by querying from the Business side (source of truth)
+    private var associatedBusinesses: [Business] {
+        allBusinesses.filter { $0.owners.contains(where: { $0.id == owner.id }) }
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.sectionSpacing) {
@@ -93,13 +98,13 @@ struct OwnerDetailView: View {
                 
                 Spacer()
                 
-                // Business count indicator
+                // Business count indicator - uses query-based count for accuracy
                 VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(owner.businesses.count)")
+                    Text("\(associatedBusinesses.count)")
                         .font(AppTheme.Fonts.title)
                         .foregroundColor(.white)
                     
-                    Text("business\(owner.businesses.count == 1 ? "" : "es")")
+                    Text("business\(associatedBusinesses.count == 1 ? "" : "es")")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -154,7 +159,7 @@ struct OwnerDetailView: View {
                 }
             }
             
-            if owner.businesses.isEmpty {
+            if associatedBusinesses.isEmpty {
                 VStack(spacing: AppTheme.Spacing.md) {
                     Text("No businesses associated")
                         .font(AppTheme.Fonts.subheadline)
@@ -169,7 +174,7 @@ struct OwnerDetailView: View {
                 .padding(.vertical, AppTheme.Spacing.xl)
             } else {
                 VStack(spacing: AppTheme.Spacing.sm) {
-                    ForEach(owner.businesses) { business in
+                    ForEach(associatedBusinesses) { business in
                         BusinessAssociationRow(
                             business: business,
                             onRemove: { removeBusiness(business) }
@@ -246,7 +251,7 @@ struct OwnerDetailView: View {
     
     private func removeBusiness(_ business: Business) {
         owner.businesses.removeAll { $0.id == business.id }
-        business.owner = nil
+        business.owners.removeAll { $0.id == owner.id }
     }
 }
 
@@ -257,7 +262,7 @@ struct BusinessAssociationRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                Text(business.name)
+                Text(business.displayName)
                     .font(AppTheme.Fonts.subheadlineMedium)
                 
                 Text(business.industry)
@@ -301,7 +306,7 @@ struct BusinessSelectorView: View {
     @Query(sort: \Business.name, order: .forward) private var allBusinesses: [Business]
     
     private var availableBusinesses: [Business] {
-        allBusinesses.filter { $0.owner?.id != owner.id }
+        allBusinesses.filter { !$0.owners.contains(where: { $0.id == owner.id }) }
     }
     
     var body: some View {
@@ -334,7 +339,7 @@ struct BusinessSelectorView: View {
     
     private func addBusiness(_ business: Business) {
         owner.businesses.append(business)
-        business.owner = owner
+        business.owners.append(owner)
         dismiss()
     }
 }
@@ -347,7 +352,7 @@ struct BusinessSelectionRow: View {
         Button(action: onSelect) {
             HStack {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(business.name)
+                    Text(business.displayName)
                         .font(AppTheme.Fonts.subheadlineMedium)
                     
                     Text(business.industry)

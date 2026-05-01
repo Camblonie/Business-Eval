@@ -16,6 +16,7 @@ struct EditBusinessView: View {
     
     // Local state for editing - initialized from business
     @State private var name: String = ""
+    @State private var teaser: String = ""
     @State private var industry: String = ""
     @State private var location: String = ""
     @State private var businessDescription: String = ""
@@ -24,6 +25,7 @@ struct EditBusinessView: View {
     @State private var numberOfEmployees: Int = 0
     @State private var yearsEstablished: Int = 0
     @State private var status: BusinessStatus = .new
+    @State private var isOnMarket: Bool = true
     
     var body: some View {
         NavigationView {
@@ -33,11 +35,33 @@ struct EditBusinessView: View {
                     TextField("Business Name", text: $name)
                         .textInputAutocapitalization(.words)
                     
+                    TextField("Teaser", text: $teaser)
+                        .textInputAutocapitalization(.words)
+                    
                     TextField("Industry", text: $industry)
                         .textInputAutocapitalization(.words)
                     
                     TextField("Location", text: $location)
                         .textInputAutocapitalization(.words)
+                    
+                    // Market Status Slider
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Market Status")
+                                .font(.headline)
+                            Spacer()
+                            Text(isOnMarket ? "On Market" : "Off Market")
+                                .font(.headline)
+                                .foregroundColor(isOnMarket ? .green : .red)
+                        }
+                        
+                        Toggle(isOn: $isOnMarket, label: {
+                            Text(isOnMarket ? "Available for purchase" : "No longer available")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        })
+                    }
+                    .padding(.vertical, 8)
                 } header: {
                     Text("Basic Information")
                 } footer: {
@@ -102,12 +126,13 @@ struct EditBusinessView: View {
                         saveChanges()
                     }
                     .fontWeight(.semibold)
-                    .disabled(name.isEmpty)
+                    .disabled(name.isEmpty && teaser.isEmpty)
                 }
             }
             .onAppear {
                 // Initialize state from business
                 name = business.name
+                teaser = business.teaser ?? ""
                 industry = business.industry
                 location = business.location
                 businessDescription = business.businessDescription
@@ -116,13 +141,20 @@ struct EditBusinessView: View {
                 numberOfEmployees = business.numberOfEmployees
                 yearsEstablished = business.yearsEstablished
                 status = business.status
+                isOnMarket = business.isOnMarket
             }
         }
     }
     
     // Saves all changes to the business model
     private func saveChanges() {
+        // Validate that either name or teaser is provided
+        guard !name.isEmpty || !teaser.isEmpty else {
+            return
+        }
+        
         business.name = name
+        business.teaser = teaser.isEmpty ? nil : teaser
         business.industry = industry
         business.location = location
         business.businessDescription = businessDescription
@@ -131,6 +163,7 @@ struct EditBusinessView: View {
         business.numberOfEmployees = numberOfEmployees
         business.yearsEstablished = yearsEstablished
         business.status = status
+        business.isOnMarket = isOnMarket
         business.updatedAt = Date()
         
         dismiss()

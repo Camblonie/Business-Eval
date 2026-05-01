@@ -29,6 +29,9 @@ struct QuickValuationView: View {
     @State private var estimatedAssetValue: Double = 0
     @State private var estimatedBlueSkyValue: Double = 0
     
+    // Real estate option
+    @State private var includeRealEstate: Bool = true
+    
     // Industry standard multiples
     private let industryMultiples: [ValuationMethodology: Double] = [
         .revenueMultiple: 2.5,
@@ -156,6 +159,28 @@ struct QuickValuationView: View {
                             }
                         } header: {
                             Text("Multiple")
+                        }
+                    }
+                    
+                    // Real Estate Option (show if business has real estate)
+                    if business.realEstateIncluded && business.realEstateValue > 0 {
+                        Section {
+                            Toggle(isOn: $includeRealEstate) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Include Real Estate")
+                                        .font(AppTheme.Fonts.body)
+                                    Text("Property value: \(formatCurrency(business.realEstateValue))")
+                                        .font(AppTheme.Fonts.caption)
+                                        .foregroundColor(AppTheme.Colors.secondary)
+                                }
+                            }
+                            .onChange(of: includeRealEstate) { _, _ in
+                                recalculate()
+                            }
+                        } header: {
+                            Text("Real Estate")
+                        } footer: {
+                            Text(includeRealEstate ? "Real estate value will be added to the business valuation." : "Valuation will reflect business operations only.")
                         }
                     }
                     
@@ -359,22 +384,31 @@ struct QuickValuationView: View {
     }
     
     private func recalculate() {
-        guard let _ = selectedBusiness else {
+        guard let business = selectedBusiness else {
             calculatedValue = 0
             return
         }
         
+        var baseValue: Double = 0
+        
         switch methodology {
         case .revenueMultiple:
-            calculatedValue = selectedBusiness!.annualRevenue * multiple
+            baseValue = business.annualRevenue * multiple
         case .profitMultiple, .ebitdaMultiple, .sdeMultiple:
-            calculatedValue = selectedBusiness!.annualProfit * multiple
+            baseValue = business.annualProfit * multiple
         case .assetBased:
             // Asset-based = Estimated Asset Value + Blue Sky Value
-            calculatedValue = estimatedAssetValue + estimatedBlueSkyValue
+            baseValue = estimatedAssetValue + estimatedBlueSkyValue
         case .discountedCashFlow, .marketComparison:
             // Manual entry required - use asking price as starting point
-            calculatedValue = selectedBusiness!.askingPrice * multiple
+            baseValue = business.askingPrice * multiple
+        }
+        
+        // Add real estate value if included and business has real estate
+        if includeRealEstate && business.realEstateIncluded && business.realEstateValue > 0 {
+            calculatedValue = baseValue + business.realEstateValue
+        } else {
+            calculatedValue = baseValue
         }
     }
     
@@ -431,7 +465,7 @@ struct BusinessPickerRow: View {
     
     var body: some View {
         HStack {
-            Text(business.name)
+            Text(business.displayName)
             Spacer()
             if business.valuations.isEmpty {
                 Text("No valuations")

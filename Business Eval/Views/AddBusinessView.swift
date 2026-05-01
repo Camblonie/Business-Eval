@@ -13,6 +13,7 @@ struct AddBusinessView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var name = ""
+    @State private var teaser = ""
     @State private var industry = ""
     @State private var location = ""
     @State private var askingPrice = ""
@@ -29,6 +30,7 @@ struct AddBusinessView: View {
             Form {
                 Section("Basic Information") {
                     TextField("Business Name *", text: $name)
+                    TextField("Teaser (optional)", text: $teaser)
                     TextField("Industry (optional)", text: $industry)
                     TextField("Location (optional)", text: $location)
                     TextField("Business Description (optional)", text: $businessDescription, axis: .vertical)
@@ -67,14 +69,21 @@ struct AddBusinessView: View {
                         addBusiness()
                         dismiss()
                     }
+                    .disabled(name.isEmpty && teaser.isEmpty)
                 }
             }
         }
     }
     
     private func addBusiness() {
+        // Validate that either name or teaser is provided
+        guard !name.isEmpty || !teaser.isEmpty else {
+            return
+        }
+        
         let business = Business(
             name: name,
+            teaser: teaser.isEmpty ? nil : teaser,
             industry: industry.isEmpty ? "" : industry,
             location: location.isEmpty ? "" : location,
             askingPrice: Double(askingPrice) ?? 0,
