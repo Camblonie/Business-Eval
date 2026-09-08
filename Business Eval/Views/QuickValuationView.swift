@@ -68,6 +68,7 @@ struct QuickValuationView: View {
                 } footer: {
                     if let business = selectedBusiness {
                         Text("Revenue: \(formatCurrency(business.annualRevenue)) • Profit: \(formatCurrency(business.annualProfit))")
+                            .foregroundColor(business.annualProfit < 0 ? AppTheme.Colors.destructive : .secondary)
                     }
                 }
                 

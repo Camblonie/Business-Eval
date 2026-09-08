@@ -15,11 +15,17 @@ struct BusinessBrokerSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Broker.name, order: .forward) private var brokers: [Broker]
+    @Query private var allBusinesses: [Business]
     @State private var showingAddBroker = false
     
-    // Filter out the current broker if one exists
+    // Filter out already assigned brokers
     private var availableBrokers: [Broker] {
-        brokers.filter { $0.id != business.broker?.id }
+        brokers.filter { !business.brokers.contains($0) }
+    }
+    
+    // Computes accurate business count for a broker by querying from the Business side
+    private func businessCount(for broker: Broker) -> Int {
+        allBusinesses.filter { $0.brokers.contains(where: { $0.id == broker.id }) }.count
     }
     
     var body: some View {
@@ -83,7 +89,7 @@ struct BusinessBrokerSelectorView: View {
     private var brokersList: some View {
         List {
             ForEach(availableBrokers) { broker in
-                BusinessBrokerSelectionRow(broker: broker) {
+                BusinessBrokerSelectionRow(broker: broker, businessCount: businessCount(for: broker)) {
                     assignBroker(broker)
                 }
             }
@@ -93,13 +99,8 @@ struct BusinessBrokerSelectorView: View {
     
     // Assigns the selected broker to the business
     private func assignBroker(_ broker: Broker) {
-        // Remove business from current broker if exists
-        if let currentBroker = business.broker {
-            currentBroker.businesses.removeAll { $0.id == business.id }
-        }
-        
-        // Assign new broker
-        business.broker = broker
+        // Add broker to business (allowing multiple brokers)
+        business.brokers.append(broker)
         broker.businesses.append(business)
         
         dismiss()
@@ -109,6 +110,7 @@ struct BusinessBrokerSelectorView: View {
 // MARK: - Broker Selection Row
 struct BusinessBrokerSelectionRow: View {
     let broker: Broker
+    let businessCount: Int  // Passed in from parent view for accurate count
     let onSelect: () -> Void
     
     var body: some View {
@@ -131,7 +133,7 @@ struct BusinessBrokerSelectionRow: View {
                     }
                     
                     HStack {
-                        Text("\(broker.businesses.count) business\(broker.businesses.count == 1 ? "" : "es")")
+                        Text("\(businessCount) business\(businessCount == 1 ? "" : "es")")
                             .font(.caption2)
                             .foregroundColor(AppTheme.Colors.secondary)
                         
@@ -265,7 +267,7 @@ struct AddBrokerViewForBusiness: View {
         broker.contactPreference = contactPreference
         
         // Assign to business
-        business.broker = broker
+        business.brokers.append(broker)
         broker.businesses.append(business)
         
         modelContext.insert(broker)

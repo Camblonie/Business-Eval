@@ -70,7 +70,8 @@ struct ValuationDetailView: View {
             
             if let business = valuation.business {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                    Text(business.name)
+                    // Display the business name, falling back to the teaser if the name is empty
+                    Text(business.displayName)
                         .font(AppTheme.Fonts.subheadlineMedium)
                     
                     Text(business.industry)
@@ -211,6 +212,109 @@ struct ValuationDetailView: View {
                     Text("No detailed financial metrics recorded")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(AppTheme.Colors.secondary)
+                }
+            }
+            
+            // Debt Service Coverage Ratio calculation
+            // Uses same assumptions as business financing: 9% interest, 10 year term, 10% down payment
+            if let business = valuation.business, business.annualProfit > 0, valuation.calculatedValue > 0 {
+                ThemedDivider()
+                
+                Text("Financing Analysis")
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                // Financing parameters
+                let downPaymentPercent = 10.0
+                let loanInterestRate = 9.0
+                let loanTermYears = 10
+                
+                // Calculate loan details
+                let downPaymentAmount = valuation.calculatedValue * (downPaymentPercent / 100.0)
+                let loanAmount = valuation.calculatedValue - downPaymentAmount
+                
+                // Calculate annual loan payment using amortization formula
+                let annualLoanPayment: Double = {
+                    guard loanAmount > 0, loanInterestRate > 0, loanTermYears > 0 else {
+                        return 0
+                    }
+                    
+                    let monthlyRate = (loanInterestRate / 100.0) / 12.0
+                    let numberOfPayments = Double(loanTermYears * 12)
+                    
+                    let numerator = monthlyRate * pow(1 + monthlyRate, numberOfPayments)
+                    let denominator = pow(1 + monthlyRate, numberOfPayments) - 1
+                    
+                    let monthlyPayment = loanAmount * (numerator / denominator)
+                    
+                    return monthlyPayment * 12.0
+                }()
+                
+                // Calculate DSCR
+                if annualLoanPayment > 0 {
+                    let dscr = business.annualProfit / annualLoanPayment
+                    
+                    VStack(spacing: AppTheme.Spacing.xs) {
+                        HStack {
+                            Text("Down Payment")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text("\(Int(downPaymentPercent))% (\(formatCurrency(downPaymentAmount)))")
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("Loan Amount")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(formatCurrency(loanAmount))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("Interest Rate")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(String(format: "%.2f%%", loanInterestRate))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("Loan Term")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text("\(loanTermYears) years")
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("Annual Loan Payment")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(formatCurrency(annualLoanPayment))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        ThemedDivider()
+                        
+                        HStack {
+                            Text("Debt Service Coverage Ratio")
+                                .font(AppTheme.Fonts.captionMedium)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(String(format: "%.2f", dscr))
+                                .font(AppTheme.Fonts.subheadlineMedium)
+                                .foregroundColor(dscr >= 1.5 ? AppTheme.Colors.success : (dscr >= 1.25 ? AppTheme.Colors.warning : AppTheme.Colors.destructive))
+                        }
+                    }
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.primary.opacity(0.1))
+                    .cornerRadius(AppTheme.CornerRadius.medium)
                 }
             }
         }

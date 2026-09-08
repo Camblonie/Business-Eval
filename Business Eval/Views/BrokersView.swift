@@ -10,10 +10,16 @@ import SwiftData
 
 struct BrokersView: View {
     @Query(sort: \Broker.name, order: .forward) private var brokers: [Broker]
+    @Query private var allBusinesses: [Business]
     @State private var searchText = ""
     @State private var showingAddBroker = false
     @State private var selectedBroker: Broker?
     @State private var selectedTab: BrokerTab = .brokers
+    
+    // Computes accurate business count for a broker by querying from the Business side
+    private func businessCount(for broker: Broker) -> Int {
+        allBusinesses.filter { $0.brokers.contains(where: { $0.id == broker.id }) }.count
+    }
     
     enum BrokerTab: String, CaseIterable {
         case brokers = "Brokers"
@@ -143,10 +149,10 @@ struct BrokersView: View {
     private var brokersList: some View {
         List {
             ForEach(Array(filteredBrokers.enumerated()), id: \.element.id) { index, broker in
-                BrokerRow(broker: broker) {
+                BrokerRow(broker: broker, businessCount: businessCount(for: broker)) {
                     selectedBroker = broker
                 }
-                .staggeredAppearance(index: index)
+                .staggeredAppearance(index: index, speed: .fast)
             }
         }
         .listStyle(PlainListStyle())
@@ -155,6 +161,7 @@ struct BrokersView: View {
 
 struct BrokerRow: View {
     let broker: Broker
+    let businessCount: Int  // Passed in from parent view for accurate count
     let onTap: () -> Void
     
     var body: some View {
@@ -175,11 +182,11 @@ struct BrokerRow: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(broker.businesses.count)")
+                    Text("\(businessCount)")
                         .font(AppTheme.Fonts.title3)
                         .foregroundColor(AppTheme.Colors.primary)
                     
-                    Text("business\(broker.businesses.count == 1 ? "" : "es")")
+                    Text("business\(businessCount == 1 ? "" : "es")")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(AppTheme.Colors.secondary)
                 }

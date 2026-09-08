@@ -10,10 +10,16 @@ import SwiftData
 
 struct OwnersView: View {
     @Query(sort: \Owner.name, order: .forward) private var owners: [Owner]
+    @Query private var allBusinesses: [Business]
     @State private var searchText = ""
     @State private var showingAddOwner = false
     @State private var selectedOwner: Owner?
     @State private var selectedTab: OwnerTab = .owners
+    
+    // Computes accurate business count for an owner by querying from the Business side
+    private func businessCount(for owner: Owner) -> Int {
+        allBusinesses.filter { $0.owners.contains(where: { $0.id == owner.id }) }.count
+    }
     
     enum OwnerTab: String, CaseIterable {
         case owners = "Owners"
@@ -142,10 +148,10 @@ struct OwnersView: View {
     private var ownersList: some View {
         List {
             ForEach(Array(filteredOwners.enumerated()), id: \.element.id) { index, owner in
-                OwnerRow(owner: owner) {
+                OwnerRow(owner: owner, businessCount: businessCount(for: owner)) {
                     selectedOwner = owner
                 }
-                .staggeredAppearance(index: index)
+                .staggeredAppearance(index: index, speed: .fast)
             }
         }
         .listStyle(PlainListStyle())
@@ -154,6 +160,7 @@ struct OwnersView: View {
 
 struct OwnerRow: View {
     let owner: Owner
+    let businessCount: Int  // Passed in from parent view for accurate count
     let onTap: () -> Void
     
     var body: some View {
@@ -174,11 +181,11 @@ struct OwnerRow: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(owner.businesses.count)")
+                    Text("\(businessCount)")
                         .font(AppTheme.Fonts.title3)
                         .foregroundColor(AppTheme.Colors.primary)
                     
-                    Text("business\(owner.businesses.count == 1 ? "" : "es")")
+                    Text("business\(businessCount == 1 ? "" : "es")")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(AppTheme.Colors.secondary)
                 }

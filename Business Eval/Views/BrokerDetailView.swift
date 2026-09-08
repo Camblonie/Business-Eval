@@ -11,8 +11,15 @@ import SwiftData
 struct BrokerDetailView: View {
     @Bindable var broker: Broker
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allBusinesses: [Business]
     @State private var showingEditBroker = false
     @State private var showingBusinessSelector = false
+    
+    // Get businesses that have this broker in their brokers array
+    private var associatedBusinesses: [Business] {
+        allBusinesses.filter { $0.brokers.contains(where: { $0.id == broker.id }) }
+    }
     
     var body: some View {
         ScrollView {
@@ -79,13 +86,13 @@ struct BrokerDetailView: View {
                 
                 Spacer()
                 
-                // Business count indicator
+                // Business count indicator - uses query-based count for accuracy
                 VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                    Text("\(broker.businesses.count)")
+                    Text("\(associatedBusinesses.count)")
                         .font(AppTheme.Fonts.title)
                         .foregroundColor(.white)
                     
-                    Text("Business\(broker.businesses.count == 1 ? "" : "es")")
+                    Text("Business\(associatedBusinesses.count == 1 ? "" : "es")")
                         .font(AppTheme.Fonts.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -148,12 +155,12 @@ struct BrokerDetailView: View {
                 showingBusinessSelector = true
             }
             
-            if broker.businesses.isEmpty {
+            if associatedBusinesses.isEmpty {
                 Text("No businesses associated")
                     .font(AppTheme.Fonts.subheadline)
                     .foregroundColor(AppTheme.Colors.secondary)
             } else {
-                ForEach(broker.businesses.sorted(by: { $0.name < $1.name })) { business in
+                ForEach(associatedBusinesses.sorted(by: { $0.name < $1.name })) { business in
                     BrokerBusinessRow(business: business)
                 }
             }
@@ -180,7 +187,7 @@ struct BrokerBusinessRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-            Text(business.name)
+            Text(business.displayName)
                 .font(AppTheme.Fonts.subheadlineMedium)
             
             HStack {

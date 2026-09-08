@@ -228,7 +228,7 @@ struct ValuationsView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
-                        .staggeredAppearance(index: index)
+                        .staggeredAppearance(index: index, speed: .fast)
                     }
                 }
             }

@@ -14,6 +14,7 @@ struct BusinessListView: View {
     @State private var showingAddBusiness = false
     @State private var searchText = ""
     @State private var sortOrder: SortOrder = .nameAZ
+    @State private var showOnlyCalderLeads = false
     
     enum SortOrder: String, CaseIterable {
         case nameAZ = "A-Z"
@@ -32,38 +33,87 @@ struct BusinessListView: View {
             }
         }
         
+        // Apply Calder Lead filter if enabled
+        let calderFiltered = if showOnlyCalderLeads {
+            filtered.filter { $0.isCalderLead }
+        } else {
+            filtered
+        }
+        
         // Apply sorting using displayName for fallback logic
         switch sortOrder {
         case .nameAZ:
-            return filtered.sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+            return calderFiltered.sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
         case .nameZA:
-            return filtered.sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedDescending }
+            return calderFiltered.sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedDescending }
         }
+    }
+    
+    var onMarketBusinesses: [Business] {
+        filteredBusinesses.filter { $0.isOnMarket }
+    }
+    
+    var offMarketBusinesses: [Business] {
+        filteredBusinesses.filter { !$0.isOnMarket }
     }
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(Array(filteredBusinesses.enumerated()), id: \.element.id) { index, business in
-                    NavigationLink(destination: BusinessDetailView(business: business)) {
-                        BusinessRowView(business: business)
+                // On-Market Businesses Section
+                if !onMarketBusinesses.isEmpty {
+                    Section("On Market") {
+                        ForEach(Array(onMarketBusinesses.enumerated()), id: \.element.id) { index, business in
+                            NavigationLink(destination: BusinessDetailView(business: business)) {
+                                BusinessRowView(business: business)
+                            }
+                            .staggeredAppearance(index: index, speed: .fast)
+                        }
+                        .onDelete(perform: deleteOnMarketBusinesses)
                     }
-                    .staggeredAppearance(index: index, speed: .fast)
                 }
-                .onDelete(perform: deleteBusinesses)
+                
+                // Off-Market Businesses Section
+                if !offMarketBusinesses.isEmpty {
+                    Section("Off Market") {
+                        ForEach(Array(offMarketBusinesses.enumerated()), id: \.element.id) { index, business in
+                            NavigationLink(destination: BusinessDetailView(business: business)) {
+                                BusinessRowView(business: business)
+                            }
+                            .staggeredAppearance(index: index, speed: .fast)
+                        }
+                        .onDelete(perform: deleteOffMarketBusinesses)
+                    }
+                }
             }
             .navigationTitle("Potential Businesses")
             .searchable(text: $searchText, prompt: "Search businesses...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Menu {
-                        ForEach(SortOrder.allCases, id: \.self) { order in
-                            Button(action: { sortOrder = order }) {
-                                Label(order.rawValue, systemImage: sortOrder == order ? "checkmark" : "")
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Menu {
+                            ForEach(SortOrder.allCases, id: \.self) { order in
+                                Button(action: { sortOrder = order }) {
+                                    Label(order.rawValue, systemImage: sortOrder == order ? "checkmark" : "")
+                                }
                             }
+                        } label: {
+                            Label("Sort", systemImage: "arrow.up.arrow.down")
                         }
-                    } label: {
-                        Label("Sort", systemImage: "arrow.up.arrow.down")
+                        
+                        // Calder Lead filter toggle
+                        Button(action: { showOnlyCalderLeads.toggle() }) {
+                            Text("CL")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(showOnlyCalderLeads ? Color.orange : Color.secondary)
+                                )
+                        }
                     }
                 }
                 
@@ -79,10 +129,18 @@ struct BusinessListView: View {
         }
     }
     
-    private func deleteBusinesses(offsets: IndexSet) {
+    private func deleteOnMarketBusinesses(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(filteredBusinesses[index])
+                modelContext.delete(onMarketBusinesses[index])
+            }
+        }
+    }
+    
+    private func deleteOffMarketBusinesses(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                modelContext.delete(offMarketBusinesses[index])
             }
         }
     }
@@ -120,10 +178,26 @@ struct BusinessRowView: View {
                 
                 // Business info in the middle
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(business.displayName)
-                        .font(AppTheme.Fonts.headline)
-                        .foregroundColor(business.primaryExtractedColor)
-                        .italic(business.isUsingTeaser)
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Text(business.displayName)
+                            .font(AppTheme.Fonts.headline)
+                            .foregroundColor(business.primaryExtractedColor)
+                            .italic(business.isUsingTeaser)
+                        
+                        // Calder Lead indicator
+                        if business.isCalderLead {
+                            Text("CL")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.orange)
+                                )
+                        }
+                    }
                     
                     Text(business.industry)
                         .font(AppTheme.Fonts.subheadline)

@@ -10,7 +10,7 @@ import SwiftData
 import PhotosUI
 
 struct AddBusinessImageView: View {
-    let business: Business
+    @Bindable var business: Business
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -135,8 +135,14 @@ struct AddBusinessImageView: View {
                     business: business
                 )
                 modelContext.insert(businessImage)
+                
+                // Add to business images array to trigger UI refresh
+                business.images.append(businessImage)
             }
         }
+        
+        // Update business timestamp to trigger refresh
+        business.updatedAt = Date()
     }
 }
 

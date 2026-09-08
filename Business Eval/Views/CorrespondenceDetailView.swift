@@ -140,7 +140,8 @@ struct CorrespondenceDetailView: View {
             if let business = correspondence.business {
                 // Show linked business info
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                    ThemedDetailRow(label: "Name", value: business.name)
+                    // Uses the display name, which falls back to the teaser when the business name is empty
+                    ThemedDetailRow(label: "Name", value: business.displayName)
                     ThemedDivider()
                     ThemedDetailRow(label: "Industry", value: business.industry)
                     ThemedDivider()
@@ -230,7 +231,8 @@ struct CorrespondenceDetailView: View {
             VStack(spacing: AppTheme.Spacing.md) {
                 if let business = correspondence.business {
                     ThemedActionButton(
-                        title: "View Business: \(business.name)",
+                        // Show the linked business using its display name, which falls back to the teaser
+                        title: "View Business: \(business.displayName)",
                         icon: "building.2",
                         color: AppTheme.Colors.primary
                     ) {
@@ -321,7 +323,8 @@ struct EditCorrespondenceView: View {
                 
                 if let business = correspondence.business {
                     Section("Business") {
-                        Text(business.name)
+                        // Display the linked business name, falling back to the teaser when the name is empty
+                        Text(business.displayName)
                             .foregroundColor(.secondary)
                     }
                 }

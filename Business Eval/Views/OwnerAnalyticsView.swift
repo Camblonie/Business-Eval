@@ -242,7 +242,7 @@ struct OwnerAnalyticsView: View {
     private var industryData: [(industry: String, ownerCount: Int)] {
         let industryGroups = Dictionary(grouping: owners.flatMap { $0.businesses }) { $0.industry }
         return industryGroups.map { (industry: $0.key, businesses: $0.value) }
-            .map { (industry: $0.industry, ownerCount: Set($0.businesses.compactMap { $0.owner }).count) }
+            .map { (industry: $0.industry, ownerCount: Set($0.businesses.flatMap { $0.owners }).count) }
             .sorted { $0.ownerCount > $1.ownerCount }
     }
 }

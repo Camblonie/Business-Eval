@@ -167,16 +167,16 @@ struct ValuationCalculatorView: View {
                 MetricRow(label: "Annual Revenue", value: "$\(String(format: "%.0f", business.annualRevenue))")
                 
             case .profitMultiple:
-                MetricRow(label: "Annual Profit", value: "$\(String(format: "%.0f", business.annualProfit))")
+                MetricRow(label: "Annual Profit", value: "$\(String(format: "%.0f", business.annualProfit))", valueColor: business.annualProfit < 0 ? AppTheme.Colors.destructive : .primary)
                 
             case .ebitdaMultiple:
-                MetricRow(label: "Annual Profit (EBITDA proxy)", value: "$\(String(format: "%.0f", business.annualProfit))")
+                MetricRow(label: "Annual Profit (EBITDA proxy)", value: "$\(String(format: "%.0f", business.annualProfit))", valueColor: business.annualProfit < 0 ? AppTheme.Colors.destructive : .primary)
                 Text("Note: Using annual profit as EBITDA proxy")
                     .font(.caption)
                     .foregroundColor(.orange)
                 
             case .sdeMultiple:
-                MetricRow(label: "Annual Profit (SDE proxy)", value: "$\(String(format: "%.0f", business.annualProfit))")
+                MetricRow(label: "Annual Profit (SDE proxy)", value: "$\(String(format: "%.0f", business.annualProfit))", valueColor: business.annualProfit < 0 ? AppTheme.Colors.destructive : .primary)
                 Text("Note: Using annual profit as SDE proxy")
                     .font(.caption)
                     .foregroundColor(.orange)
@@ -283,6 +283,13 @@ struct ValuationCalculatorView: View {
 struct MetricRow: View {
     let label: String
     let value: String
+    let valueColor: Color
+    
+    init(label: String, value: String, valueColor: Color = .primary) {
+        self.label = label
+        self.value = value
+        self.valueColor = valueColor
+    }
     
     var body: some View {
         HStack {
@@ -292,6 +299,7 @@ struct MetricRow: View {
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
+                .foregroundColor(valueColor)
         }
     }
 }

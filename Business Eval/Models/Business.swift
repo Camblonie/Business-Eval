@@ -9,6 +9,25 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+enum BusinessStatus: String, CaseIterable, Codable {
+    case new = "New"
+    case researching = "Researching"
+    case contacted = "Contacted"
+    case underReview = "Under Review"
+    case offerMade = "Offer Made"
+    case negotiating = "Negotiating"
+    case dueDiligence = "Due Diligence"
+    case closed = "Closed"
+    case rejected = "Rejected"
+    case notInterested = "Not Interested"
+}
+
+enum BuildingOwnershipType: String, CaseIterable, Codable {
+    case unknown = "Unknown"
+    case owned = "Owned"
+    case leased = "Leased"
+}
+
 @Model
 final class Business {
     var id: UUID
@@ -61,6 +80,27 @@ final class Business {
     // Market status
     var isOnMarket: Bool = true
     
+    // Calder Lead indicator - defaults to false for existing businesses
+    var isCalderLead: Bool = false
+    
+    // Building details
+    var buildingSquareFootage: Double = 0.0
+    var buildingOwnershipTypeRaw: String = "Unknown"
+    var buildingLeaseCostPerMonth: Double = 0.0
+    var buildingValue: Double = 0.0
+    
+    // MARK: - Computed Properties
+    
+    /// Computed property for building ownership type enum interface
+    var buildingOwnershipType: BuildingOwnershipType {
+        get {
+            return BuildingOwnershipType(rawValue: buildingOwnershipTypeRaw) ?? .unknown
+        }
+        set {
+            buildingOwnershipTypeRaw = newValue.rawValue
+        }
+    }
+    
     // MARK: - Display Properties
     
     /// Returns the display name: uses name if available, falls back to teaser, then default
@@ -91,7 +131,12 @@ final class Business {
          businessDescription: String = "",
          downPaymentPercent: Double = 10.0,
          loanInterestRate: Double = 9.0,
-         loanTermYears: Int = 10) {
+         loanTermYears: Int = 10,
+         isCalderLead: Bool = true,
+         buildingSquareFootage: Double = 0.0,
+         buildingOwnershipTypeRaw: String = "Unknown",
+         buildingLeaseCostPerMonth: Double = 0.0,
+         buildingValue: Double = 0.0) {
         self.id = UUID()
         self.name = name
         self.teaser = teaser
@@ -109,6 +154,11 @@ final class Business {
         self.status = .new
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.isCalderLead = isCalderLead
+        self.buildingSquareFootage = buildingSquareFootage
+        self.buildingOwnershipTypeRaw = buildingOwnershipTypeRaw
+        self.buildingLeaseCostPerMonth = buildingLeaseCostPerMonth
+        self.buildingValue = buildingValue
     }
     
     // MARK: - Loan Calculations
@@ -226,17 +276,4 @@ final class Business {
         
         return Array(topColors)
     }
-}
-
-enum BusinessStatus: String, CaseIterable, Codable {
-    case new = "New"
-    case researching = "Researching"
-    case contacted = "Contacted"
-    case underReview = "Under Review"
-    case offerMade = "Offer Made"
-    case negotiating = "Negotiating"
-    case dueDiligence = "Due Diligence"
-    case closed = "Closed"
-    case rejected = "Rejected"
-    case notInterested = "Not Interested"
 }

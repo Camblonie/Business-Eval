@@ -208,7 +208,7 @@ struct EditValuationView: View {
                             .foregroundColor(AppTheme.Colors.secondary)
                         Text(formatCurrency(business.annualProfit))
                             .font(AppTheme.Fonts.captionMedium)
-                            .foregroundColor(AppTheme.Colors.money)
+                            .foregroundColor(business.annualProfit < 0 ? AppTheme.Colors.destructive : AppTheme.Colors.money)
                     }
                 }
                 

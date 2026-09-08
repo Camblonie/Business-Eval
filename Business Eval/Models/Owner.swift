@@ -20,7 +20,8 @@ final class Owner {
     var createdAt: Date
     var updatedAt: Date
     
-    // Relationships
+    // Relationships - inverse side of many-to-many with Business
+    // The Business model owns this relationship via @Relationship(inverse: \Owner.businesses)
     var businesses: [Business] = []
     
     init(name: String, email: String? = nil, phone: String? = nil, 

@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BusinessImagesView: View {
-    let business: Business
+    @Bindable var business: Business
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedImage: BusinessImage?
     @State private var showingAddImages = false
     
@@ -68,9 +70,19 @@ struct BusinessImagesView: View {
                         GridItem(.flexible())
                     ], spacing: 12) {
                         ForEach(business.images.sorted(by: { $0.createdAt > $1.createdAt })) { image in
-                            BusinessImageCell(image: image) {
-                                selectedImage = image
-                            }
+                            BusinessImageCell(
+                                image: image,
+                                isThumbnail: business.thumbnailImage?.id == image.id,
+                                onSetAsThumbnail: {
+                                    business.thumbnailImage = image
+                                },
+                                onDelete: {
+                                    deleteImage(image)
+                                },
+                                onTap: {
+                                    selectedImage = image
+                                }
+                            )
                         }
                     }
                 }
@@ -83,36 +95,109 @@ struct BusinessImagesView: View {
             AddBusinessImageView(business: business)
         }
         .sheet(item: $selectedImage) { image in
-            ImageDetailView(image: image)
+            ImageDetailView(image: image, business: business)
+        }
+    }
+    
+    private func deleteImage(_ image: BusinessImage) {
+        // If this is the thumbnail, clear the thumbnail reference
+        if business.thumbnailImage?.id == image.id {
+            business.thumbnailImage = nil
+        }
+        
+        // Remove from business images array
+        business.images.removeAll { $0.id == image.id }
+        
+        // Delete from model context
+        modelContext.delete(image)
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to delete image: \(error)")
         }
     }
 }
 
 struct BusinessImageCell: View {
     let image: BusinessImage
+    let isThumbnail: Bool
+    let onSetAsThumbnail: () -> Void
+    let onDelete: () -> Void
     let onTap: () -> Void
     
     var body: some View {
         VStack(spacing: 4) {
-            if let uiImage = image.image {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 100)
-                    .clipped()
-                    .cornerRadius(8)
-                    .onTapGesture {
-                        onTap()
+            ZStack(alignment: .topTrailing) {
+                // Image
+                if let uiImage = image.image {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 100)
+                        .clipped()
+                        .cornerRadius(8)
+                        .onTapGesture {
+                            onTap()
+                        }
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 100)
+                        .cornerRadius(8)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .foregroundColor(.gray)
+                        )
+                }
+                
+                // Thumbnail badge
+                if isThumbnail {
+                    VStack(spacing: 2) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.caption)
+                        Text("Thumbnail")
+                            .font(.caption2)
+                            .foregroundColor(.yellow)
                     }
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 100)
-                    .cornerRadius(8)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .foregroundColor(.gray)
-                    )
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.7))
+                    .cornerRadius(6)
+                    .padding(4)
+                }
+            }
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                if !isThumbnail {
+                    Button(action: onSetAsThumbnail) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "star")
+                            Text("Thumbnail")
+                        }
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.2))
+                        .foregroundColor(.blue)
+                        .cornerRadius(6)
+                    }
+                }
+                
+                Button(action: onDelete) {
+                    HStack(spacing: 2) {
+                        Image(systemName: "trash")
+                        Text("Delete")
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.2))
+                    .foregroundColor(.red)
+                    .cornerRadius(6)
+                }
             }
             
             if let caption = image.caption, !caption.isEmpty {
@@ -131,6 +216,7 @@ struct BusinessImageCell: View {
 
 struct ImageDetailView: View {
     let image: BusinessImage
+    let business: Business
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -168,9 +254,34 @@ struct ImageDetailView: View {
             .navigationTitle("Image Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        if business.thumbnailImage?.id != image.id {
+                            Button(action: {
+                                business.thumbnailImage = image
+                            }) {
+                                Label("Set as Thumbnail", systemImage: "star")
+                            }
+                        }
+                        
+                        Button(role: .destructive, action: {
+                            // Delete image and dismiss
+                            if business.thumbnailImage?.id == image.id {
+                                business.thumbnailImage = nil
+                            }
+                            business.images.removeAll { $0.id == image.id }
+                            dismiss()
+                        }) {
+                            Label("Delete Image", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }

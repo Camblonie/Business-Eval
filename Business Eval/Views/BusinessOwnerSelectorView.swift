@@ -13,10 +13,16 @@ struct BusinessOwnerSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Owner.name, order: .forward) private var owners: [Owner]
+    @Query private var allBusinesses: [Business]
     @State private var showingAddOwner = false
     
     private var availableOwners: [Owner] {
-        owners.filter { $0.id != business.owner?.id }
+        owners.filter { !business.owners.contains($0) }
+    }
+    
+    // Computes accurate business count for an owner by querying from the Business side
+    private func businessCount(for owner: Owner) -> Int {
+        allBusinesses.filter { $0.owners.contains(where: { $0.id == owner.id }) }.count
     }
     
     var body: some View {
@@ -94,7 +100,7 @@ struct BusinessOwnerSelectorView: View {
     private var ownersList: some View {
         List {
             ForEach(availableOwners) { owner in
-                BusinessOwnerSelectionRow(owner: owner) {
+                BusinessOwnerSelectionRow(owner: owner, businessCount: businessCount(for: owner)) {
                     assignOwner(owner)
                 }
             }
@@ -103,13 +109,8 @@ struct BusinessOwnerSelectorView: View {
     }
     
     private func assignOwner(_ owner: Owner) {
-        // Remove business from current owner if exists
-        if let currentOwner = business.owner {
-            currentOwner.businesses.removeAll { $0.id == business.id }
-        }
-        
-        // Assign new owner
-        business.owner = owner
+        // Add owner to business (allowing multiple owners)
+        business.owners.append(owner)
         owner.businesses.append(business)
         
         dismiss()
@@ -118,6 +119,7 @@ struct BusinessOwnerSelectorView: View {
 
 struct BusinessOwnerSelectionRow: View {
     let owner: Owner
+    let businessCount: Int  // Passed in from parent view for accurate count
     let onSelect: () -> Void
     
     var body: some View {
@@ -141,7 +143,7 @@ struct BusinessOwnerSelectionRow: View {
                     }
                     
                     HStack {
-                        Text("\(owner.businesses.count) business\(owner.businesses.count == 1 ? "" : "es")")
+                        Text("\(businessCount) business\(businessCount == 1 ? "" : "es")")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
@@ -257,7 +259,7 @@ struct AddOwnerViewForBusiness: View {
         owner.contactPreference = contactPreference
         
         // Assign to business
-        business.owner = owner
+        business.owners.append(owner)
         owner.businesses.append(business)
         
         modelContext.insert(owner)

@@ -11,8 +11,9 @@ import SwiftUI
 import SwiftData
 
 struct EditBusinessView: View {
-    @Bindable var business: Business
+    let business: Business
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     
     // Local state for editing - initialized from business
     @State private var name: String = ""
@@ -26,6 +27,15 @@ struct EditBusinessView: View {
     @State private var yearsEstablished: Int = 0
     @State private var status: BusinessStatus = .new
     @State private var isOnMarket: Bool = true
+    
+    // Calder Lead indicator
+    @State private var isCalderLead: Bool = false
+    
+    // Building details
+    @State private var buildingSquareFootage: Double = 0.0
+    @State private var buildingOwnershipType: BuildingOwnershipType = BuildingOwnershipType.unknown
+    @State private var buildingLeaseCostPerMonth: Double = 0.0
+    @State private var buildingValue: Double = 0.0
     
     var body: some View {
         NavigationView {
@@ -76,6 +86,8 @@ struct EditBusinessView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    
+                    Toggle("Calder Lead", isOn: $isCalderLead)
                 }
                 
                 // Business Details Section
@@ -90,6 +102,30 @@ struct EditBusinessView: View {
                         .autocorrectionDisabled()
                 } header: {
                     Text("Business Details")
+                }
+                
+                // Building Details Section
+                Section {
+                    TextField("Building Square Footage", value: $buildingSquareFootage, format: .number)
+                        .keyboardType(.decimalPad)
+                    
+                    Picker("Building Ownership", selection: $buildingOwnershipType) {
+                        ForEach(BuildingOwnershipType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    
+                    if buildingOwnershipType == .leased {
+                        TextField("Lease Cost Per Month", value: $buildingLeaseCostPerMonth, format: .currency(code: "USD"))
+                            .keyboardType(.decimalPad)
+                    }
+                    
+                    if buildingOwnershipType == .owned {
+                        TextField("Building Value", value: $buildingValue, format: .currency(code: "USD"))
+                            .keyboardType(.decimalPad)
+                    }
+                } header: {
+                    Text("Building Details")
                 }
                 
                 // Description Section
@@ -142,6 +178,11 @@ struct EditBusinessView: View {
                 yearsEstablished = business.yearsEstablished
                 status = business.status
                 isOnMarket = business.isOnMarket
+                isCalderLead = business.isCalderLead
+                buildingSquareFootage = business.buildingSquareFootage
+                buildingOwnershipType = business.buildingOwnershipType
+                buildingLeaseCostPerMonth = business.buildingLeaseCostPerMonth
+                buildingValue = business.buildingValue
             }
         }
     }
@@ -164,9 +205,19 @@ struct EditBusinessView: View {
         business.yearsEstablished = yearsEstablished
         business.status = status
         business.isOnMarket = isOnMarket
+        business.isCalderLead = isCalderLead
+        business.buildingSquareFootage = buildingSquareFootage
+        business.buildingOwnershipType = buildingOwnershipType
+        business.buildingLeaseCostPerMonth = buildingLeaseCostPerMonth
+        business.buildingValue = buildingValue
         business.updatedAt = Date()
         
-        dismiss()
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            print("Failed to save business changes: \(error)")
+        }
     }
 }
 

@@ -130,7 +130,7 @@ struct BrokerBusinessSelectionRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(business.name)
+                Text(business.displayName)
                     .font(.headline)
                 
                 Spacer()
@@ -161,11 +161,9 @@ struct BrokerBusinessSelectionRow: View {
                     
                     Spacer()
                     
-                    if business.annualProfit > 0 {
-                        Text("Profit: $\(business.annualProfit, specifier: "%.0f")")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text("Profit: $\(business.annualProfit, specifier: "%.0f")")
+                        .font(.caption)
+                        .foregroundColor(business.annualProfit < 0 ? AppTheme.Colors.destructive : .secondary)
                 }
             }
         }

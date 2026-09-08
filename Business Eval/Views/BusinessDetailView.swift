@@ -72,7 +72,8 @@ struct BusinessDetailView: View {
             }
             .padding()
         }
-        .navigationTitle(business.name)
+        // Display the business name, falling back to the teaser if the name is empty
+        .navigationTitle(business.displayName)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -155,8 +156,8 @@ struct BusinessDetailView: View {
             AddBusinessImageView(business: business)
         }
         .sheet(isPresented: $showingOwnerDetail) {
-            if let owner = business.owner {
-                OwnerDetailView(owner: owner)
+            if !business.owners.isEmpty {
+                OwnerDetailView(owner: business.owners.first!)
             }
         }
         .sheet(isPresented: $showingOwnerSelector) {
@@ -169,9 +170,9 @@ struct BusinessDetailView: View {
             BusinessBrokerSelectorView(business: business)
         }
         .sheet(isPresented: $showingBrokerDetail) {
-            if let broker = business.broker {
+            if !business.brokers.isEmpty {
                 NavigationView {
-                    BrokerDetailView(broker: broker)
+                    BrokerDetailView(broker: business.brokers.first!)
                 }
             }
         }
@@ -186,7 +187,8 @@ struct BusinessDetailView: View {
     private var businessOverviewSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
-                Text(business.name)
+                // Display the business name, falling back to the teaser if the name is empty
+                Text(business.displayName)
                     .font(AppTheme.Fonts.title2)
                     .foregroundColor(.white)
                 
@@ -260,7 +262,7 @@ struct BusinessDetailView: View {
                     title: "Annual Profit",
                     value: formatCurrency(business.annualProfit),
                     icon: "dollarsign.circle.fill",
-                    color: AppTheme.Colors.profit
+                    color: business.annualProfit < 0 ? AppTheme.Colors.destructive : AppTheme.Colors.profit
                 )
                 
                 if business.annualRevenue > 0 {
@@ -379,6 +381,89 @@ struct BusinessDetailView: View {
                     }
                 }
             }
+            
+            // Real Estate Section
+            if business.realEstateIncluded {
+                ThemedDivider()
+                
+                Text("Real Estate Included")
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                VStack(spacing: AppTheme.Spacing.xs) {
+                    HStack {
+                        Text("Property Value")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text(formatCurrency(business.realEstateValue))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(AppTheme.Colors.money)
+                    }
+                    
+                    if business.realEstateSquareFeet > 0 {
+                        HStack {
+                            Text("Square Footage")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(String(format: "%.0f sq ft", business.realEstateSquareFeet))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                    }
+                    
+                    if business.realEstatePricePerSqFt > 0 {
+                        HStack {
+                            Text("Price Per Sq Ft")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(String(format: "$%.0f/sq ft", business.realEstatePricePerSqFt))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                    }
+                    
+                    if let description = business.realEstateDescription, !description.isEmpty {
+                        HStack(alignment: .top) {
+                            Text("Description")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(description)
+                                .font(AppTheme.Fonts.captionMedium)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
+                }
+                
+                // Business vs Real Estate breakdown
+                if business.askingPrice > 0 && business.realEstateValue > 0 {
+                    let businessOnlyValue = business.askingPrice - business.realEstateValue
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Business Only Value")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(formatCurrency(businessOnlyValue))
+                                .font(AppTheme.Fonts.captionMedium)
+                                .foregroundColor(AppTheme.Colors.profit)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Real Estate %")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(String(format: "%.1f%%", (business.realEstateValue / business.askingPrice) * 100))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                    }
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.primary.opacity(0.1))
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+                }
+            }
         }
         .elevatedCardStyle()
     }
@@ -419,30 +504,43 @@ struct BusinessDetailView: View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             SectionHeader(
                 "Owner Information",
-                actionTitle: business.owner != nil ? "View Details" : "Add Owner"
+                actionTitle: !business.owners.isEmpty ? "View Details" : "Add Owner"
             ) {
-                if business.owner != nil {
+                if !business.owners.isEmpty {
                     showingOwnerDetail = true
                 } else {
                     showingOwnerSelector = true
                 }
             }
             
-            if let owner = business.owner {
+            if !business.owners.isEmpty {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(owner.name)
-                        .font(AppTheme.Fonts.subheadlineMedium)
-                    
-                    if let email = owner.email {
-                        Text(email)
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundColor(AppTheme.Colors.secondary)
-                    }
-                    
-                    if let phone = owner.phone {
-                        Text(phone)
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundColor(AppTheme.Colors.secondary)
+                    ForEach(business.owners, id: \.id) { owner in
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            HStack {
+                                Text(owner.name)
+                                    .font(AppTheme.Fonts.subheadlineMedium)
+                                
+                                if business.owners.count > 1 {
+                                    Text("•")
+                                        .font(.caption)
+                                        .foregroundColor(AppTheme.Colors.secondary)
+                                }
+                            }
+                            
+                            if let email = owner.email {
+                                Text(email)
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                            }
+                            
+                            if let phone = owner.phone {
+                                Text(phone)
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                            }
+                        }
+                        .padding(.bottom, 4)
                     }
                 }
             } else {
@@ -458,36 +556,49 @@ struct BusinessDetailView: View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             SectionHeader(
                 "Broker Information",
-                actionTitle: business.broker != nil ? "View Details" : "Add Broker"
+                actionTitle: !business.brokers.isEmpty ? "View Details" : "Add Broker"
             ) {
-                if business.broker != nil {
+                if !business.brokers.isEmpty {
                     showingBrokerDetail = true
                 } else {
                     showingBrokerSelector = true
                 }
             }
             
-            if let broker = business.broker {
+            if !business.brokers.isEmpty {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(broker.name)
-                        .font(AppTheme.Fonts.subheadlineMedium)
-                    
-                    if let company = broker.company {
-                        Text(company)
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundColor(AppTheme.Colors.secondary)
-                    }
-                    
-                    if let email = broker.email {
-                        Text(email)
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundColor(AppTheme.Colors.secondary)
-                    }
-                    
-                    if let commission = broker.commission {
-                        Text("Commission: \(commission, specifier: "%.1f")%")
-                            .font(AppTheme.Fonts.caption)
-                            .foregroundColor(AppTheme.Colors.secondary)
+                    ForEach(business.brokers, id: \.id) { broker in
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            HStack {
+                                Text(broker.name)
+                                    .font(AppTheme.Fonts.subheadlineMedium)
+                                
+                                if business.brokers.count > 1 {
+                                    Text("•")
+                                        .font(.caption)
+                                        .foregroundColor(AppTheme.Colors.secondary)
+                                }
+                            }
+                            
+                            if let company = broker.company {
+                                Text(company)
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                            }
+                            
+                            if let email = broker.email {
+                                Text(email)
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                            }
+                            
+                            if let commission = broker.commission {
+                                Text("Commission: \(commission, specifier: "%.1f")%")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                            }
+                        }
+                        .padding(.bottom, 4)
                     }
                 }
             } else {

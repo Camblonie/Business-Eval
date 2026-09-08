@@ -315,7 +315,7 @@ struct CorrespondenceSection: View {
                     CorrespondenceTimelineItem(correspondence: item) {
                         onTap(item)
                     }
-                    .staggeredAppearance(index: index)
+                    .staggeredAppearance(index: index, speed: .fast)
                 }
             }
             .padding(.horizontal)

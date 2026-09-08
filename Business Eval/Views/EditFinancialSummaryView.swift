@@ -23,6 +23,14 @@ struct EditFinancialSummaryView: View {
     @State private var loanInterestRate: Double
     @State private var loanTermYears: Int
     
+    // Real Estate state variables
+    @State private var realEstateIncluded: Bool
+    @State private var realEstateValue: String
+    @State private var realEstateSquareFeet: String
+    @State private var realEstatePricePerSqFt: String
+    @State private var realEstateDescription: String
+    @State private var realEstateNotes: String
+    
     init(business: Business) {
         self.business = business
         // Initialize with current business values
@@ -34,6 +42,14 @@ struct EditFinancialSummaryView: View {
         self._downPaymentPercent = State(initialValue: business.downPaymentPercent)
         self._loanInterestRate = State(initialValue: business.loanInterestRate)
         self._loanTermYears = State(initialValue: business.loanTermYears)
+        
+        // Initialize real estate values
+        self._realEstateIncluded = State(initialValue: business.realEstateIncluded)
+        self._realEstateValue = State(initialValue: business.realEstateValue == 0 ? "" : String(business.realEstateValue))
+        self._realEstateSquareFeet = State(initialValue: business.realEstateSquareFeet == 0 ? "" : String(business.realEstateSquareFeet))
+        self._realEstatePricePerSqFt = State(initialValue: business.realEstatePricePerSqFt == 0 ? "" : String(business.realEstatePricePerSqFt))
+        self._realEstateDescription = State(initialValue: business.realEstateDescription ?? "")
+        self._realEstateNotes = State(initialValue: business.realEstateNotes ?? "")
     }
     
     var body: some View {
@@ -79,7 +95,7 @@ struct EditFinancialSummaryView: View {
                             Text("$")
                                 .foregroundColor(.secondary)
                             TextField("0", text: $annualProfit)
-                                .keyboardType(.decimalPad)
+                                .keyboardType(.numbersAndPunctuation)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                         }
                     }
@@ -156,6 +172,102 @@ struct EditFinancialSummaryView: View {
                     .padding(.vertical, 4)
                 }
                 
+                // Real Estate Section
+                Section(header: Text("Real Estate")) {
+                    // Real Estate Included Toggle
+                    Toggle(isOn: $realEstateIncluded) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Real Estate Included")
+                                .font(.headline)
+                            Text("Property is included in the sale")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    
+                    // Show real estate fields only if included
+                    if realEstateIncluded {
+                        // Real Estate Value
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Real Estate Value")
+                                .font(.headline)
+                            
+                            HStack {
+                                Text("$")
+                                    .foregroundColor(.secondary)
+                                TextField("0", text: $realEstateValue)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        
+                        // Square Footage
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Square Footage")
+                                .font(.headline)
+                            
+                            HStack {
+                                TextField("0", text: $realEstateSquareFeet)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                Text("sq ft")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        
+                        // Price Per Square Foot
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Price Per Square Foot")
+                                .font(.headline)
+                            
+                            HStack {
+                                Text("$")
+                                    .foregroundColor(.secondary)
+                                TextField("0", text: $realEstatePricePerSqFt)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                Text("/sq ft")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Auto-calculate hint
+                            if let sqft = Double(realEstateSquareFeet), sqft > 0,
+                               let value = Double(realEstateValue), value > 0 {
+                                let calculatedPricePerSqFt = value / sqft
+                                Text("Calculated: \(formatCurrency(calculatedPricePerSqFt))/sq ft")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        
+                        // Property Description
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Property Description")
+                                .font(.headline)
+                            
+                            TextField("Type, size, features...", text: $realEstateDescription, axis: .vertical)
+                                .lineLimit(2...4)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
+                        .padding(.vertical, 4)
+                        
+                        // Real Estate Notes
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Real Estate Notes")
+                                .font(.headline)
+                            
+                            TextField("Additional notes...", text: $realEstateNotes, axis: .vertical)
+                                .lineLimit(2...4)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                
                 // Preview Section
                 if !askingPrice.isEmpty || !annualRevenue.isEmpty || !annualProfit.isEmpty {
                     Section(header: Text("Preview")) {
@@ -169,7 +281,8 @@ struct EditFinancialSummaryView: View {
                             }
                             
                             if !annualProfit.isEmpty {
-                                FinancialRow(label: "Annual Profit", value: Double(annualProfit) ?? 0, color: .purple)
+                                let profitValue = Double(annualProfit) ?? 0
+                                FinancialRow(label: "Annual Profit", value: profitValue, color: profitValue < 0 ? .red : .purple)
                             }
                             
                             // Calculate and show profit margin if both revenue and profit are provided
@@ -281,6 +394,14 @@ struct EditFinancialSummaryView: View {
         business.downPaymentPercent = downPaymentPercent
         business.loanInterestRate = loanInterestRate
         business.loanTermYears = loanTermYears
+        
+        // Update real estate properties
+        business.realEstateIncluded = realEstateIncluded
+        business.realEstateValue = Double(realEstateValue) ?? 0
+        business.realEstateSquareFeet = Double(realEstateSquareFeet) ?? 0
+        business.realEstatePricePerSqFt = Double(realEstatePricePerSqFt) ?? 0
+        business.realEstateDescription = realEstateDescription.isEmpty ? nil : realEstateDescription
+        business.realEstateNotes = realEstateNotes.isEmpty ? nil : realEstateNotes
         
         // Update the timestamp
         business.updatedAt = Date()
