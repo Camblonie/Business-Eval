@@ -30,7 +30,8 @@ struct AddBusinessView: View {
     @State private var buildingLeaseCostPerMonth = ""
     @State private var buildingValue = ""
     
-    // Real estate pricing
+    // Real estate
+    @State private var realEstateIncluded = false
     @State private var realEstateIncludedInPrice = true
     @State private var realEstateLeaseCostPerMonth = ""
     
@@ -69,26 +70,39 @@ struct AddBusinessView: View {
                         .keyboardType(.URL)
                 }
                 
-                Section("Building Details (optional)") {
-                    TextField("Building Square Footage", text: $buildingSquareFootage)
-                        .keyboardType(.decimalPad)
-                    
-                    Picker("Building Ownership", selection: $buildingOwnershipType) {
-                        ForEach(BuildingOwnershipType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                Section("Building & Real Estate (optional)") {
+                    // Top-level toggle: does this deal include real estate?
+                    Toggle(isOn: $realEstateIncluded) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Real Estate Included")
+                            Text("Property is part of this deal")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
                     
-                    if buildingOwnershipType == .leased {
-                        TextField("Lease Cost Per Month", text: $buildingLeaseCostPerMonth)
-                            .keyboardType(.decimalPad)
-                    }
-                    
-                    if buildingOwnershipType == .owned {
-                        TextField("Building Value", text: $buildingValue)
+                    // Show building and RE detail fields when RE is part of the deal
+                    if realEstateIncluded {
+                        TextField("Building Square Footage", text: $buildingSquareFootage)
                             .keyboardType(.decimalPad)
                         
-                        // Toggle: is the RE price included in the business asking price?
+                        Picker("Building Ownership", selection: $buildingOwnershipType) {
+                            ForEach(BuildingOwnershipType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type)
+                            }
+                        }
+                        
+                        if buildingOwnershipType == .leased {
+                            TextField("Lease Cost Per Month", text: $buildingLeaseCostPerMonth)
+                                .keyboardType(.decimalPad)
+                        }
+                        
+                        if buildingOwnershipType == .owned {
+                            TextField("Building Value", text: $buildingValue)
+                                .keyboardType(.decimalPad)
+                        }
+                        
+                        // Is the RE price bundled into the business asking price?
                         Toggle(isOn: $realEstateIncludedInPrice) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("RE Included in Asking Price")
@@ -97,11 +111,11 @@ struct AddBusinessView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
+                        
+                        // Lease / rent cost — always shown when RE is included
+                        TextField("Lease / Rent Cost Per Month", text: $realEstateLeaseCostPerMonth)
+                            .keyboardType(.decimalPad)
                     }
-                    
-                    // Lease / rent cost — always shown when building details are entered
-                    TextField("Lease / Rent Cost Per Month", text: $realEstateLeaseCostPerMonth)
-                        .keyboardType(.decimalPad)
                 }
             }
             .navigationTitle("Add Business")
@@ -152,7 +166,8 @@ struct AddBusinessView: View {
             business.listingURL = listingURL
         }
         
-        // Set RE pricing fields
+        // Set RE fields
+        business.realEstateIncluded = realEstateIncluded
         business.realEstateIncludedInPrice = realEstateIncludedInPrice
         business.realEstateLeaseCostPerMonth = Double(realEstateLeaseCostPerMonth) ?? 0.0
         
