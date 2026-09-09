@@ -71,7 +71,27 @@ struct AddBusinessView: View {
                 }
                 
                 Section("Building & Real Estate (optional)") {
-                    // Top-level toggle: does this deal include real estate?
+                    // Building details — always visible so the user can record ownership info
+                    TextField("Building Square Footage", text: $buildingSquareFootage)
+                        .keyboardType(.decimalPad)
+                    
+                    Picker("Building Ownership", selection: $buildingOwnershipType) {
+                        ForEach(BuildingOwnershipType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    
+                    if buildingOwnershipType == .leased {
+                        TextField("Lease Cost Per Month", text: $buildingLeaseCostPerMonth)
+                            .keyboardType(.decimalPad)
+                    }
+                    
+                    if buildingOwnershipType == .owned {
+                        TextField("Building Value", text: $buildingValue)
+                            .keyboardType(.decimalPad)
+                    }
+                    
+                    // Toggle: does this deal include real estate?
                     Toggle(isOn: $realEstateIncluded) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Real Estate Included")
@@ -81,27 +101,8 @@ struct AddBusinessView: View {
                         }
                     }
                     
-                    // Show building and RE detail fields when RE is part of the deal
+                    // RE-specific fields shown when RE is part of the deal
                     if realEstateIncluded {
-                        TextField("Building Square Footage", text: $buildingSquareFootage)
-                            .keyboardType(.decimalPad)
-                        
-                        Picker("Building Ownership", selection: $buildingOwnershipType) {
-                            ForEach(BuildingOwnershipType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type)
-                            }
-                        }
-                        
-                        if buildingOwnershipType == .leased {
-                            TextField("Lease Cost Per Month", text: $buildingLeaseCostPerMonth)
-                                .keyboardType(.decimalPad)
-                        }
-                        
-                        if buildingOwnershipType == .owned {
-                            TextField("Building Value", text: $buildingValue)
-                                .keyboardType(.decimalPad)
-                        }
-                        
                         // Is the RE price bundled into the business asking price?
                         Toggle(isOn: $realEstateIncludedInPrice) {
                             VStack(alignment: .leading, spacing: 2) {
