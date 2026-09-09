@@ -30,6 +30,10 @@ struct AddBusinessView: View {
     @State private var buildingLeaseCostPerMonth = ""
     @State private var buildingValue = ""
     
+    // Real estate pricing
+    @State private var realEstateIncludedInPrice = true
+    @State private var realEstateLeaseCostPerMonth = ""
+    
     // Calder Lead indicator
     @State private var isCalderLead = true
     
@@ -83,7 +87,21 @@ struct AddBusinessView: View {
                     if buildingOwnershipType == .owned {
                         TextField("Building Value", text: $buildingValue)
                             .keyboardType(.decimalPad)
+                        
+                        // Toggle: is the RE price included in the business asking price?
+                        Toggle(isOn: $realEstateIncludedInPrice) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("RE Included in Asking Price")
+                                Text("Real estate value is bundled into the business asking price")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
+                    
+                    // Lease / rent cost — always shown when building details are entered
+                    TextField("Lease / Rent Cost Per Month", text: $realEstateLeaseCostPerMonth)
+                        .keyboardType(.decimalPad)
                 }
             }
             .navigationTitle("Add Business")
@@ -133,6 +151,10 @@ struct AddBusinessView: View {
         if !listingURL.isEmpty {
             business.listingURL = listingURL
         }
+        
+        // Set RE pricing fields
+        business.realEstateIncludedInPrice = realEstateIncludedInPrice
+        business.realEstateLeaseCostPerMonth = Double(realEstateLeaseCostPerMonth) ?? 0.0
         
         modelContext.insert(business)
     }

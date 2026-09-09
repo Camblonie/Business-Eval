@@ -37,6 +37,10 @@ struct EditBusinessView: View {
     @State private var buildingLeaseCostPerMonth: Double = 0.0
     @State private var buildingValue: Double = 0.0
     
+    // Real estate pricing
+    @State private var realEstateIncludedInPrice: Bool = true
+    @State private var realEstateLeaseCostPerMonth: Double = 0.0
+    
     var body: some View {
         NavigationView {
             Form {
@@ -123,7 +127,21 @@ struct EditBusinessView: View {
                     if buildingOwnershipType == .owned {
                         TextField("Building Value", value: $buildingValue, format: .currency(code: "USD"))
                             .keyboardType(.decimalPad)
+                        
+                        // Toggle: is the RE price included in the business asking price?
+                        Toggle(isOn: $realEstateIncludedInPrice) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("RE Included in Asking Price")
+                                Text("Real estate value is bundled into the business asking price")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
+                    
+                    // Lease / rent cost — always shown
+                    TextField("Lease / Rent Cost Per Month", value: $realEstateLeaseCostPerMonth, format: .currency(code: "USD"))
+                        .keyboardType(.decimalPad)
                 } header: {
                     Text("Building Details")
                 }
@@ -183,6 +201,8 @@ struct EditBusinessView: View {
                 buildingOwnershipType = business.buildingOwnershipType
                 buildingLeaseCostPerMonth = business.buildingLeaseCostPerMonth
                 buildingValue = business.buildingValue
+                realEstateIncludedInPrice = business.realEstateIncludedInPrice
+                realEstateLeaseCostPerMonth = business.realEstateLeaseCostPerMonth
             }
         }
     }
@@ -210,6 +230,8 @@ struct EditBusinessView: View {
         business.buildingOwnershipType = buildingOwnershipType
         business.buildingLeaseCostPerMonth = buildingLeaseCostPerMonth
         business.buildingValue = buildingValue
+        business.realEstateIncludedInPrice = realEstateIncludedInPrice
+        business.realEstateLeaseCostPerMonth = realEstateLeaseCostPerMonth
         business.updatedAt = Date()
         
         do {

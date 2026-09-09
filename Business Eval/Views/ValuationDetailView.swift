@@ -215,8 +215,7 @@ struct ValuationDetailView: View {
                 }
             }
             
-            // Debt Service Coverage Ratio calculation
-            // Uses same assumptions as business financing: 9% interest, 10 year term, 10% down payment
+            // Financing analysis using the business's actual loan terms
             if let business = valuation.business, business.annualProfit > 0, valuation.calculatedValue > 0 {
                 ThemedDivider()
                 
@@ -224,33 +223,15 @@ struct ValuationDetailView: View {
                     .font(AppTheme.Fonts.subheadline)
                     .foregroundColor(AppTheme.Colors.secondary)
                 
-                // Financing parameters
-                let downPaymentPercent = 10.0
-                let loanInterestRate = 9.0
-                let loanTermYears = 10
+                // Use the business's configured financing terms
+                let downPaymentPercent = business.downPaymentPercent
+                let loanInterestRate = business.loanInterestRate
+                let loanTermYears = business.loanTermYears
                 
-                // Calculate loan details
                 let downPaymentAmount = valuation.calculatedValue * (downPaymentPercent / 100.0)
-                let loanAmount = valuation.calculatedValue - downPaymentAmount
+                let loanAmt = valuation.calculatedValue - downPaymentAmount
+                let annualLoanPayment = Business.calculateAnnualPayment(principal: loanAmt, rate: loanInterestRate, years: loanTermYears)
                 
-                // Calculate annual loan payment using amortization formula
-                let annualLoanPayment: Double = {
-                    guard loanAmount > 0, loanInterestRate > 0, loanTermYears > 0 else {
-                        return 0
-                    }
-                    
-                    let monthlyRate = (loanInterestRate / 100.0) / 12.0
-                    let numberOfPayments = Double(loanTermYears * 12)
-                    
-                    let numerator = monthlyRate * pow(1 + monthlyRate, numberOfPayments)
-                    let denominator = pow(1 + monthlyRate, numberOfPayments) - 1
-                    
-                    let monthlyPayment = loanAmount * (numerator / denominator)
-                    
-                    return monthlyPayment * 12.0
-                }()
-                
-                // Calculate DSCR
                 if annualLoanPayment > 0 {
                     let dscr = business.annualProfit / annualLoanPayment
                     
@@ -269,7 +250,7 @@ struct ValuationDetailView: View {
                                 .font(AppTheme.Fonts.caption)
                                 .foregroundColor(AppTheme.Colors.secondary)
                             Spacer()
-                            Text(formatCurrency(loanAmount))
+                            Text(formatCurrency(loanAmt))
                                 .font(AppTheme.Fonts.captionMedium)
                         }
                         

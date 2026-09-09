@@ -60,6 +60,17 @@ final class Business {
     var realEstateDescription: String?
     var realEstateNotes: String?
     
+    // Whether the RE price is bundled into the business asking price (default: yes)
+    var realEstateIncludedInPrice: Bool = true
+    
+    // Separate RE financing terms (RE loans are typically longer)
+    var realEstateLoanTermYears: Int = 25
+    var realEstateInterestRate: Double = 7.0
+    var realEstateDownPaymentPercent: Double = 20.0
+    
+    // Lease cost applies whether RE is owned, leased, or included in the price
+    var realEstateLeaseCostPerMonth: Double = 0.0
+    
     // Relationships
     var correspondence: [Correspondence] = []
     var valuations: [Valuation] = []
@@ -161,41 +172,101 @@ final class Business {
         self.buildingValue = buildingValue
     }
     
-    // MARK: - Loan Calculations
+    // MARK: - Price Breakdown
     
-    /// Calculates the down payment amount based on asking price and down payment percentage
-    var downPaymentAmount: Double {
-        askingPrice * (downPaymentPercent / 100.0)
-    }
-    
-    /// Calculates the loan amount (asking price minus down payment)
-    var loanAmount: Double {
-        askingPrice - downPaymentAmount
-    }
-    
-    /// Calculates the annual loan payment using amortization formula
-    /// Formula: P = L[c(1 + c)^n]/[(1 + c)^n - 1] where:
-    /// P = payment, L = loan amount, c = monthly interest rate, n = number of payments
-    var annualLoanPayment: Double {
-        guard loanAmount > 0, loanInterestRate > 0, loanTermYears > 0 else {
-            return 0
+    /// The business-only portion of the asking price (excludes RE if RE is bundled in)
+    var businessOnlyPrice: Double {
+        if realEstateIncluded && realEstateIncludedInPrice && realEstateValue > 0 {
+            return max(askingPrice - realEstateValue, 0)
         }
-        
-        let monthlyRate = (loanInterestRate / 100.0) / 12.0
-        let numberOfPayments = Double(loanTermYears * 12)
-        
-        // Amortization formula for monthly payment
-        let numerator = monthlyRate * pow(1 + monthlyRate, numberOfPayments)
-        let denominator = pow(1 + monthlyRate, numberOfPayments) - 1
-        
-        let monthlyPayment = loanAmount * (numerator / denominator)
-        
-        return monthlyPayment * 12.0
+        return askingPrice
     }
     
-    /// Monthly loan payment
+    // MARK: - Business Loan Calculations
+    
+    /// Down payment for the business portion
+    var downPaymentAmount: Double {
+        businessOnlyPrice * (downPaymentPercent / 100.0)
+    }
+    
+    /// Loan amount for the business portion
+    var loanAmount: Double {
+        businessOnlyPrice - downPaymentAmount
+    }
+    
+    /// Annual loan payment for the business portion using amortization formula
+    /// Formula: P = L[c(1 + c)^n]/[(1 + c)^n - 1]
+    var annualLoanPayment: Double {
+        Self.calculateAnnualPayment(principal: loanAmount, rate: loanInterestRate, years: loanTermYears)
+    }
+    
+    /// Monthly loan payment for the business portion
     var monthlyLoanPayment: Double {
         annualLoanPayment / 12.0
+    }
+    
+    // MARK: - Real Estate Loan Calculations
+    
+    /// The price used for RE financing — the entered RE value
+    var realEstateFinancingPrice: Double {
+        realEstateValue
+    }
+    
+    /// Down payment for the real estate portion
+    var realEstateDownPaymentAmount: Double {
+        realEstateFinancingPrice * (realEstateDownPaymentPercent / 100.0)
+    }
+    
+    /// Loan amount for the real estate portion
+    var realEstateLoanAmount: Double {
+        realEstateFinancingPrice - realEstateDownPaymentAmount
+    }
+    
+    /// Annual loan payment for the real estate portion
+    var realEstateAnnualLoanPayment: Double {
+        Self.calculateAnnualPayment(principal: realEstateLoanAmount, rate: realEstateInterestRate, years: realEstateLoanTermYears)
+    }
+    
+    /// Monthly loan payment for the real estate portion
+    var realEstateMonthlyLoanPayment: Double {
+        realEstateAnnualLoanPayment / 12.0
+    }
+    
+    // MARK: - Combined Totals
+    
+    /// Total annual debt service across business + RE loans
+    var totalAnnualDebtService: Double {
+        var total = annualLoanPayment
+        if realEstateIncluded && realEstateValue > 0 {
+            total += realEstateAnnualLoanPayment
+        }
+        return total
+    }
+    
+    /// Total monthly debt service across business + RE loans
+    var totalMonthlyDebtService: Double {
+        totalAnnualDebtService / 12.0
+    }
+    
+    /// Total acquisition cost (business + RE if not included in asking price)
+    var totalAcquisitionCost: Double {
+        if realEstateIncluded && !realEstateIncludedInPrice && realEstateValue > 0 {
+            return askingPrice + realEstateValue
+        }
+        return askingPrice
+    }
+    
+    // MARK: - Shared Amortization Helper
+    
+    /// Calculates annual loan payment using standard amortization formula
+    static func calculateAnnualPayment(principal: Double, rate: Double, years: Int) -> Double {
+        guard principal > 0, rate > 0, years > 0 else { return 0 }
+        let monthlyRate = (rate / 100.0) / 12.0
+        let numberOfPayments = Double(years * 12)
+        let numerator = monthlyRate * pow(1 + monthlyRate, numberOfPayments)
+        let denominator = pow(1 + monthlyRate, numberOfPayments) - 1
+        let monthlyPayment = principal * (numerator / denominator)
+        return monthlyPayment * 12.0
     }
     
     // MARK: - Image Color Extraction

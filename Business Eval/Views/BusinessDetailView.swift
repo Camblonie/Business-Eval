@@ -277,15 +277,27 @@ struct BusinessDetailView: View {
                 }
             }
             
-            // Loan/Financing Section
+            // Business Financing Section
             if business.askingPrice > 0 {
                 ThemedDivider()
                 
-                Text("Financing Details")
+                Text("Business Financing")
                     .font(AppTheme.Fonts.subheadline)
                     .foregroundColor(AppTheme.Colors.secondary)
                 
-                // Loan input parameters display
+                // Show business-only price when RE is bundled
+                if business.realEstateIncluded && business.realEstateIncludedInPrice && business.realEstateValue > 0 {
+                    HStack {
+                        Text("Business-Only Price")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text(formatCurrency(business.businessOnlyPrice))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(AppTheme.Colors.profit)
+                    }
+                }
+                
                 VStack(spacing: AppTheme.Spacing.xs) {
                     HStack {
                         Text("Down Payment")
@@ -324,7 +336,7 @@ struct BusinessDetailView: View {
                     }
                 }
                 
-                // Annual Payment Card - prominent display
+                // Business annual payment card
                 if business.annualLoanPayment > 0 {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -351,42 +363,14 @@ struct BusinessDetailView: View {
                     .padding(AppTheme.Spacing.sm)
                     .background(AppTheme.Colors.warning.opacity(0.1))
                     .cornerRadius(AppTheme.CornerRadius.medium)
-                    
-                    // Cash flow comparison
-                    if business.annualProfit > 0 {
-                        let cashFlowAfterDebt = business.annualProfit - business.annualLoanPayment
-                        let debtServiceCoverage = business.annualProfit / business.annualLoanPayment
-                        
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Cash Flow After Debt")
-                                    .font(AppTheme.Fonts.caption)
-                                    .foregroundColor(AppTheme.Colors.secondary)
-                                Text(formatCurrency(cashFlowAfterDebt))
-                                    .font(AppTheme.Fonts.captionMedium)
-                                    .foregroundColor(cashFlowAfterDebt >= 0 ? AppTheme.Colors.success : AppTheme.Colors.destructive)
-                            }
-                            
-                            Spacer()
-                            
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text("Debt Service Coverage")
-                                    .font(AppTheme.Fonts.caption)
-                                    .foregroundColor(AppTheme.Colors.secondary)
-                                Text(String(format: "%.2fx", debtServiceCoverage))
-                                    .font(AppTheme.Fonts.captionMedium)
-                                    .foregroundColor(debtServiceCoverage >= 1.25 ? AppTheme.Colors.success : (debtServiceCoverage >= 1.0 ? AppTheme.Colors.warning : AppTheme.Colors.destructive))
-                            }
-                        }
-                    }
                 }
             }
             
-            // Real Estate Section
+            // Real Estate Section — always shown when RE is part of the deal
             if business.realEstateIncluded {
                 ThemedDivider()
                 
-                Text("Real Estate Included")
+                Text(business.realEstateIncludedInPrice ? "Real Estate (Included in Price)" : "Real Estate (Separate)")
                     .font(AppTheme.Fonts.subheadline)
                     .foregroundColor(AppTheme.Colors.secondary)
                 
@@ -423,6 +407,18 @@ struct BusinessDetailView: View {
                         }
                     }
                     
+                    // Lease cost — always shown
+                    if business.realEstateLeaseCostPerMonth > 0 {
+                        HStack {
+                            Text("Lease / Rent")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text("\(formatCurrency(business.realEstateLeaseCostPerMonth))/mo (\(formatCurrency(business.realEstateLeaseCostPerMonth * 12))/yr)")
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                    }
+                    
                     if let description = business.realEstateDescription, !description.isEmpty {
                         HStack(alignment: .top) {
                             Text("Description")
@@ -436,15 +432,84 @@ struct BusinessDetailView: View {
                     }
                 }
                 
-                // Business vs Real Estate breakdown
-                if business.askingPrice > 0 && business.realEstateValue > 0 {
-                    let businessOnlyValue = business.askingPrice - business.realEstateValue
+                // RE financing details
+                if business.realEstateValue > 0 {
+                    VStack(spacing: AppTheme.Spacing.xs) {
+                        HStack {
+                            Text("RE Down Payment")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text("\(Int(business.realEstateDownPaymentPercent))% (\(formatCurrency(business.realEstateDownPaymentAmount)))")
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("RE Loan Amount")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(formatCurrency(business.realEstateLoanAmount))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("RE Interest Rate")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text(String(format: "%.2f%%", business.realEstateInterestRate))
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                        
+                        HStack {
+                            Text("RE Loan Term")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Spacer()
+                            Text("\(business.realEstateLoanTermYears) years")
+                                .font(AppTheme.Fonts.captionMedium)
+                        }
+                    }
+                    
+                    // RE payment card
+                    if business.realEstateAnnualLoanPayment > 0 {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("RE Annual Payment")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                                Text(formatCurrency(business.realEstateAnnualLoanPayment))
+                                    .font(AppTheme.Fonts.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AppTheme.Colors.warning)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("RE Monthly Payment")
+                                    .font(AppTheme.Fonts.caption)
+                                    .foregroundColor(AppTheme.Colors.secondary)
+                                Text(formatCurrency(business.realEstateMonthlyLoanPayment))
+                                    .font(AppTheme.Fonts.captionMedium)
+                                    .foregroundColor(AppTheme.Colors.warning)
+                            }
+                        }
+                        .padding(AppTheme.Spacing.sm)
+                        .background(AppTheme.Colors.primary.opacity(0.1))
+                        .cornerRadius(AppTheme.CornerRadius.medium)
+                    }
+                }
+                
+                // Business vs RE price breakdown when bundled
+                if business.realEstateIncludedInPrice && business.askingPrice > 0 && business.realEstateValue > 0 {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Business Only Value")
                                 .font(AppTheme.Fonts.caption)
                                 .foregroundColor(AppTheme.Colors.secondary)
-                            Text(formatCurrency(businessOnlyValue))
+                            Text(formatCurrency(business.businessOnlyPrice))
                                 .font(AppTheme.Fonts.captionMedium)
                                 .foregroundColor(AppTheme.Colors.profit)
                         }
@@ -462,6 +527,112 @@ struct BusinessDetailView: View {
                     .padding(AppTheme.Spacing.sm)
                     .background(AppTheme.Colors.primary.opacity(0.1))
                     .cornerRadius(AppTheme.CornerRadius.medium)
+                }
+                
+                // Total acquisition cost when RE is separate
+                if !business.realEstateIncludedInPrice && business.realEstateValue > 0 {
+                    HStack {
+                        Text("Total Acquisition Cost")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Spacer()
+                        Text(formatCurrency(business.totalAcquisitionCost))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .fontWeight(.bold)
+                            .foregroundColor(AppTheme.Colors.money)
+                    }
+                    .padding(AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.money.opacity(0.1))
+                    .cornerRadius(AppTheme.CornerRadius.medium)
+                }
+            }
+            
+            // Combined debt service & cash flow — shown when both business and RE loans exist
+            if business.realEstateIncluded && business.realEstateValue > 0 && business.askingPrice > 0 {
+                ThemedDivider()
+                
+                Text("Combined Debt Service")
+                    .font(AppTheme.Fonts.subheadline)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Total Annual")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Text(formatCurrency(business.totalAnnualDebtService))
+                            .font(AppTheme.Fonts.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(AppTheme.Colors.warning)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Total Monthly")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Text(formatCurrency(business.totalMonthlyDebtService))
+                            .font(AppTheme.Fonts.headline)
+                            .foregroundColor(AppTheme.Colors.warning)
+                    }
+                }
+                .padding(AppTheme.Spacing.sm)
+                .background(AppTheme.Colors.warning.opacity(0.1))
+                .cornerRadius(AppTheme.CornerRadius.medium)
+                
+                // Cash flow after all debt
+                if business.annualProfit > 0 {
+                    let cashFlowAfterDebt = business.annualProfit - business.totalAnnualDebtService
+                    let dscr = business.totalAnnualDebtService > 0 ? business.annualProfit / business.totalAnnualDebtService : 0
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Cash Flow After All Debt")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(formatCurrency(cashFlowAfterDebt))
+                                .font(AppTheme.Fonts.captionMedium)
+                                .foregroundColor(cashFlowAfterDebt >= 0 ? AppTheme.Colors.success : AppTheme.Colors.destructive)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Debt Service Coverage")
+                                .font(AppTheme.Fonts.caption)
+                                .foregroundColor(AppTheme.Colors.secondary)
+                            Text(String(format: "%.2fx", dscr))
+                                .font(AppTheme.Fonts.captionMedium)
+                                .foregroundColor(dscr >= 1.25 ? AppTheme.Colors.success : (dscr >= 1.0 ? AppTheme.Colors.warning : AppTheme.Colors.destructive))
+                        }
+                    }
+                }
+            } else if business.askingPrice > 0 && business.annualProfit > 0 && business.annualLoanPayment > 0 {
+                // Simple cash flow when no RE
+                let cashFlowAfterDebt = business.annualProfit - business.annualLoanPayment
+                let dscr = business.annualProfit / business.annualLoanPayment
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Cash Flow After Debt")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Text(formatCurrency(cashFlowAfterDebt))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(cashFlowAfterDebt >= 0 ? AppTheme.Colors.success : AppTheme.Colors.destructive)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Debt Service Coverage")
+                            .font(AppTheme.Fonts.caption)
+                            .foregroundColor(AppTheme.Colors.secondary)
+                        Text(String(format: "%.2fx", dscr))
+                            .font(AppTheme.Fonts.captionMedium)
+                            .foregroundColor(dscr >= 1.25 ? AppTheme.Colors.success : (dscr >= 1.0 ? AppTheme.Colors.warning : AppTheme.Colors.destructive))
+                    }
                 }
             }
         }

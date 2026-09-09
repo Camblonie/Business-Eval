@@ -178,6 +178,29 @@ struct QuickValuationView: View {
                             .onChange(of: includeRealEstate) { _, _ in
                                 recalculate()
                             }
+                            
+                            // Show whether RE is bundled in the asking price
+                            if business.realEstateIncludedInPrice {
+                                HStack {
+                                    Text("RE is included in asking price")
+                                        .font(AppTheme.Fonts.caption)
+                                        .foregroundColor(AppTheme.Colors.secondary)
+                                    Spacer()
+                                    Text("Business-only: \(formatCurrency(business.businessOnlyPrice))")
+                                        .font(AppTheme.Fonts.caption)
+                                        .foregroundColor(AppTheme.Colors.profit)
+                                }
+                            } else {
+                                HStack {
+                                    Text("RE is separate from asking price")
+                                        .font(AppTheme.Fonts.caption)
+                                        .foregroundColor(AppTheme.Colors.secondary)
+                                    Spacer()
+                                    Text("Total: \(formatCurrency(business.totalAcquisitionCost))")
+                                        .font(AppTheme.Fonts.caption)
+                                        .foregroundColor(AppTheme.Colors.money)
+                                }
+                            }
                         } header: {
                             Text("Real Estate")
                         } footer: {
@@ -405,9 +428,17 @@ struct QuickValuationView: View {
             baseValue = business.askingPrice * multiple
         }
         
-        // Add real estate value if included and business has real estate
+        // Add real estate value if the user chose to include it in the valuation
         if includeRealEstate && business.realEstateIncluded && business.realEstateValue > 0 {
-            calculatedValue = baseValue + business.realEstateValue
+            // When RE is bundled in asking price, the base multiplier already includes RE
+            // so only add RE separately if it is NOT included in the asking price
+            if business.realEstateIncludedInPrice {
+                // RE is already factored into the asking price; add it on top of the operations-only calc
+                calculatedValue = baseValue + business.realEstateValue
+            } else {
+                // RE is separate — add it to the business valuation
+                calculatedValue = baseValue + business.realEstateValue
+            }
         } else {
             calculatedValue = baseValue
         }

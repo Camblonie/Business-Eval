@@ -17,7 +17,7 @@ class DataExportService {
     
     /// Generates CSV content for all businesses
     static func generateBusinessesCSV(businesses: [Business]) -> String {
-        var csv = "ID,Name,Industry,Location,Asking Price,Annual Revenue,Annual Profit,Employees,Years Established,Status,Description,Listing URL,Notes,Owner,Broker,Real Estate Included,Real Estate Value,Real Estate Sq Ft,Real Estate Price/Sq Ft,Real Estate Description,Created,Updated\n"
+        var csv = "ID,Name,Industry,Location,Asking Price,Annual Revenue,Annual Profit,Employees,Years Established,Status,Description,Listing URL,Notes,Owner,Broker,Real Estate Included,RE Included In Price,Real Estate Value,Real Estate Sq Ft,Real Estate Price/Sq Ft,RE Lease Cost/Mo,RE Loan Term Yrs,RE Interest Rate,RE Down Payment %,Real Estate Description,Created,Updated\n"
         
         for business in businesses {
             let row = [
@@ -37,9 +37,14 @@ class DataExportService {
                 escapeCSV(business.owners.map { $0.name }.joined(separator: "; ")),
                 escapeCSV(business.brokers.map { $0.name }.joined(separator: "; ")),
                 business.realEstateIncluded ? "Yes" : "No",
+                business.realEstateIncludedInPrice ? "Yes" : "No",
                 String(format: "%.2f", business.realEstateValue),
                 String(format: "%.0f", business.realEstateSquareFeet),
                 String(format: "%.2f", business.realEstatePricePerSqFt),
+                String(format: "%.2f", business.realEstateLeaseCostPerMonth),
+                String(business.realEstateLoanTermYears),
+                String(format: "%.2f", business.realEstateInterestRate),
+                String(format: "%.1f", business.realEstateDownPaymentPercent),
                 escapeCSV(business.realEstateDescription ?? ""),
                 formatDate(business.createdAt),
                 formatDate(business.updatedAt)
