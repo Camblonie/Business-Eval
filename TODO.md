@@ -7,4 +7,4 @@
 - [ ] Move the brokers tab where the owners tab is and put the owners tab on the second sheet - added Sep 9, 2026
 - [x] Add Building details like sqft and whether it is leased or for sale and $ for each way. - added Sep 9, 2026
 - [x] Show RE value and inclusion better. - added Sep 9, 2026
-- [ ] Show RE valuation with 25 yr term - added Sep 9, 2026
+- [x] Show RE valuation with 25 yr term - added Sep 9, 2026
