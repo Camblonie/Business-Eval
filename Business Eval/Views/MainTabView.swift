@@ -15,14 +15,14 @@ struct MainTabView: View {
                     Label("Businesses", systemImage: "building.2")
                 }
             
-            ValuationsView()
-                .tabItem {
-                    Label("Valuations", systemImage: "chart.line.uptrend.xyaxis")
-                }
-            
             CorrespondenceView()
                 .tabItem {
                     Label("Correspondence", systemImage: "envelope")
+                }
+            
+            BrokersView()
+                .tabItem {
+                    Label("Brokers", systemImage: "briefcase")
                 }
             
             OwnersView()
@@ -30,9 +30,9 @@ struct MainTabView: View {
                     Label("Owners", systemImage: "person.2")
                 }
             
-            BrokersView()
+            ValuationsView()
                 .tabItem {
-                    Label("Brokers", systemImage: "briefcase")
+                    Label("Valuations", systemImage: "chart.line.uptrend.xyaxis")
                 }
             
             SettingsView()
