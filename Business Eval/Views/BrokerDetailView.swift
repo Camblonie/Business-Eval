@@ -161,7 +161,11 @@ struct BrokerDetailView: View {
                     .foregroundColor(AppTheme.Colors.secondary)
             } else {
                 ForEach(associatedBusinesses.sorted(by: { $0.name < $1.name })) { business in
-                    BrokerBusinessRow(business: business)
+                    // Navigate to the business detail view when a row is tapped
+                    NavigationLink(destination: BusinessDetailView(business: business)) {
+                        BrokerBusinessRow(business: business)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }
